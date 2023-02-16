@@ -1,0 +1,60 @@
+/* Style the tab */
+.tab {
+  overflow: hidden;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-direction: row;
+  align-content: center;
+  background: #fff;
+}
+/* Style the buttons inside the tab */
+.tab button {
+  border-radius: 30px;
+  background-color: inherit;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s ease-in;
+}
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background: #3BCE5B;
+  transition: 0.3s ease-in;
+}
+/* Create an active/current tablink class */
+.tab button.active {
+  background: #3BCE5B;
+}
+/* Style the tab content */
+.tabcontent {
+  padding: 6px 12px;
+  border-top: none;
+  transition: 0.3s ease-in;
+}
+.cards-container {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-auto-rows: minmax(200px, auto);
+}
+.card-details,
+.more-details {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: space-between;
+  align-items: center;
+}
+.bottom-btn {
+  position: fixed;
+  width: 95%;
+  text-align: center;
+  bottom: -6px;
+  left: 50%;
+  padding: 12px;
+  transform: translate(-50%, 0);
+  background: #fff;
+  border-radius: 12px;
+}

@@ -1,0 +1,24 @@
+.topbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  height: 38px;
+  background-color: rgb(132, 140, 196);
+  }
+  
+  .location-container {
+    display: flex;
+    width: auto;
+    justify-content: space-between;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: center;
+    align-items: center;
+  }
+
+  .my-location {
+    margin: 0 5px;
+    border-bottom: 2px dotted #fff;
+  }
+  

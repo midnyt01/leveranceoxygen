@@ -1,0 +1,17 @@
+.return-order-status-container {
+    position: absolute;
+    background-color: gray;
+    width: 250px;
+    height: 250px;
+    right: 60px;
+    top: 100px;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    box-sizing: border-box;
+    padding: 10px;
+}
+
+.date-wrapper {
+    width: 90%;
+}

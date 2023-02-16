@@ -1,0 +1,22 @@
+.sort_sellers_container {
+    width: 90%;
+    margin: 15px auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sort_sellers_title {
+    font-size: 20px;
+}
+
+.sort_sellers_value {
+    margin-left: 20px;
+    box-sizing: border-box;
+    padding: 7px 14px;
+    color: white;
+    background-color: #252422;
+    border-radius: 5px;
+    cursor: pointer;
+}
+

@@ -1,0 +1,26 @@
+.place-order-main-wrapper {
+  width: 80%;
+  margin: 5px auto;
+  margin-top: 50px;
+}
+
+.place-order-main{
+  width: 95%;
+  margin: auto;
+  box-sizing: border-box;
+  border: 1px solid black;
+  color: white;
+  font-size: 24px;
+  font-weight: 400;
+  padding: 10px 0px;
+  text-align: center;
+  letter-spacing: 0.5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cylinder-count-statement {
+  margin: 12px 5px;
+  font-size: 17px;
+  font-weight: 400;
+}

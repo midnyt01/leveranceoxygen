@@ -1,0 +1,26 @@
+.nav {
+  width: 100% !important;
+}
+.nav,
+.nav-wrapper {
+  position: relative;
+  height: 60px;
+  box-shadow: none;
+}
+.navbar-right-icons {
+  float: right;
+}
+
+.notification-count {
+  position: absolute;
+  width: 20px;
+  border-radius: 50%;
+  background-color: coral;
+  height: 20px;
+  box-sizing: border-box;
+  font-size: 15px;
+  padding: 0px 6px;
+  font-weight: bold;
+  top: -1px;
+  left: 10px;
+}

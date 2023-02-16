@@ -1,0 +1,44 @@
+.seller-card {
+    width: 95%;
+    margin: 15px auto;
+    border-radius: 10px;
+    display: flex;
+    text-decoration: none;
+    color: #000;
+    background: #949CC4;
+}
+
+.seller-profile-picture {
+    width: 100px;
+    margin: 15px 10px;
+    border-radius: 10px;
+}
+
+.info-container {
+    margin: 12px 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.title-container {
+    margin: 5px 0;
+}
+
+.title {
+    margin: 0px;
+}
+
+.distance {
+    font-size: 13px;
+    color: gray;
+}
+
+.some-info {
+    margin: 5px 0;
+    font-size: 12px;
+    line-height: 15px;
+    letter-spacing: 1px;
+}
+
+

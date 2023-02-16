@@ -1,0 +1,24 @@
+.inventory-grid {
+    display: flex;
+    justify-content: space-evenly;
+    flex-direction: column;
+}
+.inventory-card {
+    border: 1px solid rgb(184, 184, 184);
+    text-align: center;
+    max-width: 100%;
+    margin-top: 25px;
+}
+table.inventory-table {
+    overflow: scroll;
+    border-radius: 12px;
+    border-collapse: collapse;
+    overflow: scroll;
+}
+table.inventory-table td,
+table.inventory-table th 
+{
+    border: 0.5px solid rgb(184, 184, 184);
+    padding: 5px;
+    /* border-radius: 12px; */
+}

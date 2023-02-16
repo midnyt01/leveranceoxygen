@@ -1,0 +1,42 @@
+.sidenav {
+    position: relative;
+    transition: 0.3s ease-in;
+}
+.slideout {
+    z-index: 1020;
+    width: 250px;
+    height: 100vh;
+    background-color: white;
+    position: fixed;
+    left: -10px;
+    top: -18px;
+    transition: 0.5s ease-out;
+    overflow-y: auto;
+    will-change: transform;
+    box-shadow:
+        6px 0.1px 2.2px rgba(0, 0, 0, 0.024),
+        13.6px 0.3px 5px rgba(0, 0, 0, 0.035),
+        23.6px 0.6px 8.7px rgba(0, 0, 0, 0.043),
+        37.6px 0.9px 13.8px rgba(0, 0, 0, 0.05),
+        58px 1.4px 21.3px rgba(0, 0, 0, 0.057),
+        90.4px 2.1px 33.2px rgba(0, 0, 0, 0.065),
+        150.1px 3.5px 55.1px rgba(0, 0, 0, 0.076),
+        300px 7px 110px rgba(0, 0, 0, 0.1);
+}
+.sidenav-close {
+    position: absolute;
+    right: 15px;
+    top: 20px;
+}
+ul.slideout {
+    list-style: none;
+}
+.admin-sidenav-links {
+    margin-top: 0;
+}
+.admin-sidenav-links li {
+    height: 50px;
+}
+svg:not(:root).svg-inline--fa, svg:not(:host).svg-inline--fa {
+    width: 25px;
+}

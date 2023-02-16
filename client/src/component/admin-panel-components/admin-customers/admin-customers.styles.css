@@ -1,0 +1,15 @@
+.table-container {
+    width: 100%;
+    overflow: scroll;
+}
+table.customer-table {
+    overflow: scroll;
+    border-radius: 12px;
+    border-collapse: collapse;
+}
+table.customer-table td,
+table.customer-table th 
+{
+    border: 0.5px solid rgb(184, 184, 184);
+    padding: 0 5px 0 5px;
+}

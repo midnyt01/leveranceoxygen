@@ -1,0 +1,21 @@
+.login-card {
+    min-height: 90vh !important;
+    position: relative;
+}
+.login-card .card-content {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+.login-label {
+   margin-bottom: 10px;
+}
+.login-input {
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: rgb(230, 230, 230);
+}
