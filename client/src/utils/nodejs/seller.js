@@ -1,4 +1,5 @@
 const API = 'https://api.leveranceoxygen.com/seller';
+// const API = 'http://localhost:8000/seller';
 
 async function httpLoginSeller (sellerCred) {
     const response = await fetch(`${API}/login`, {

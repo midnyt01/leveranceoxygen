@@ -1,5 +1,5 @@
 const API = 'https://api.leveranceoxygen.com/admin';
-
+// const API = 'http://localhost:8000/admin';
 
 
 async function httpCreateAdmin (adminCred) {
@@ -168,6 +168,20 @@ async function httpCreateSellerOrder (orderDetails, sellerId) {
     return await response.json()
 }
 
+async function httpCreateSellerDemandOrder (orderDetails, DemandId) {
+    const adminToken = localStorage.getItem("admin")
+    console.log(orderDetails)
+    const response = await fetch(`${API}/createsellerdemandorder/${DemandId}`, {
+        method: "post",
+        headers: {
+            "Content-Type": "application/json",
+            "auth-token": `${adminToken}`
+        },
+        body: JSON.stringify(orderDetails)
+    })
+    return await response.json()
+}
+
 async function httpGetAllSellersOrders () {
     const adminToken = localStorage.getItem("admin")
     const response = await fetch(`${API}/sellerorders`, {
@@ -216,6 +230,17 @@ async function httpUpdateSellerReturnOrder (orderDetails, OrderId) {
     return await response.json()
 }
 
+async function httpGetAllSellerDemandOrders () {
+    const adminToken = localStorage.getItem("admin")
+    const response = await fetch(`${API}/sellerdemandorders`, {
+        method: "get",
+        headers: {
+            "auth-token": `${adminToken}`
+        }
+    })
+    return await response.json()
+}
+
 //get all customers
 
 async function httpGetAllCustomersDetails() {
@@ -238,6 +263,7 @@ export {
     httpGetAllProducts,
     httpDeleteProduct,
     httpCreateSeller,
+    httpCreateSellerDemandOrder,
     httpGetAllSellers,
     httpGetSellerById,
     httpGetSellerOrdersBySellerId,
@@ -248,5 +274,6 @@ export {
     httpUpdateSellerOrder,
     httpGetAllSellerReturnOrders,
     httpUpdateSellerReturnOrder,
+    httpGetAllSellerDemandOrders,
     httpGetAllCustomersDetails
 }

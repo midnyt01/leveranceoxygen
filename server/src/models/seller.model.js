@@ -52,76 +52,113 @@ async function getCurrentSellerInfoById(Id, callback) {
 }
 
 async function demandCylinders(Id, cylinders, callback) {
-  let sql0 = `SELECT Demand FROM sellers WHERE SellerId = ${Id}`
-  db.query(sql0, function(err0, result0) {
-    if (err0) {
-      callback(err0, null)
+  db.getConnection(function(err, connection) {
+    if (err) {
+      callback(err, null);
     } else {
-      let newDemand = Number(result0[0].Demand) + Number(cylinders)
-      let sql = `UPDATE sellers SET Demand = ${newDemand} WHERE SellerId = ${Id}`;
-      db.query(sql, function (err, result) {
+      connection.beginTransaction(function(err) {
         if (err) {
-          callback(err, null);
+          callback(err, null)
+        }
+        let sql0 = `SELECT Demand FROM sellers WHERE SellerId = ${Id}`
+        connection.query(sql0, function(err0, result0) {
+        if (err0) {
+          return connection.rollback(function() {
+            callback(err0, null)
+          })
         } else {
-          callback(null, {
-            success: true
+          let newDemand = Number(result0[0].Demand) + Number(cylinders)
+          let sql = `UPDATE sellers SET Demand = ${newDemand} WHERE SellerId = ${Id}`;
+          connection.query(sql, function (err, result) {
+            if (err) {
+              return connection.rollback(function() {
+                callback(err0, null);
+              });
+            } else {
+              let sql = `INSERT INTO demand_orders SET ?`;
+              connection.query(sql, {SellerId : Id, Quantity: cylinders}, function(err, result) {
+                if (err) {
+                  return connection.rollback(function() {
+                    callback(err, null)
+                  })
+                } else {
+                  connection.commit(function(err, result) {
+                    if (err) {
+                      return connection.rollback(function() {
+                        callback(err, null)
+                      })
+                    } else {
+                      callback(null, {
+                        success: true
+                      });
+                    }
+                  })
+                }
+              })
+            }
           });
         }
-      });
+      })
+      })
     }
   })
 }
 
 async function addBalanceToSellerAccount(Id, transaction, callback) {
   const { Process, Amount, Method, TransactionDate } = transaction;
-  db.beginTransaction(function (err) {
+  db.getConnection(function(err, connection) {
     if (err) {
       callback(err, null);
-    } else {
-      let sql1 = `SELECT Balance FROM sellers WHERE SellerId = ${Id}`;
-      db.query(sql1, function (err1, result1) {
-        if (err1) {
-          return db.rollback(function () {
-            callback(err1, null);
-          });
-        } else {
-          let NewAmount = Number(result1[0].Balance) + Number(Amount);
-          let sql = `UPDATE sellers SET Balance = ${NewAmount} WHERE SellerId = ${Id}`;
-          db.query(sql, function (err2, result) {
-            if (err2) {
-              return db.rollback(function () {
-                callback(err2, null);
-              });
-            } else {
-              let sql = "INSERT INTO seller_transactions SET ?";
-              db.query(sql,{ SellerId: Id, Process, Amount, Method, TransactionDate },function (err4, result) {
-                  if (err4) {
-                    return db.rollback(function() {
-                      callback(err4, null)
-                    })
-                  } else {
-                    let TransactionId = result.insertId
-                    db.commit(function (err3) {
-                      if (err3) {
-                        return db.rollback(function () {
-                          callback(err3, null);
-                        });
-                      } else {
-                        callback(null, {
-                          TransactionId,
-                          success: true,
-                        });
-                      }
-                    });
-                  }
-                }
-              );
-            }
-          });
-        }
-      });
     }
-  });
+    connection.beginTransaction(function (err) {
+      if (err) {
+        callback(err, null);
+      } else {
+        let sql1 = `SELECT Balance FROM sellers WHERE SellerId = ${Id}`;
+        connection.query(sql1, function (err1, result1) {
+          if (err1) {
+            return connection.rollback(function () {
+              callback(err1, null);
+            });
+          } else {
+            let NewAmount = Number(result1[0].Balance) + Number(Amount);
+            let sql = `UPDATE sellers SET Balance = ${NewAmount} WHERE SellerId = ${Id}`;
+            connection.query(sql, function (err2, result) {
+              if (err2) {
+                return connection.rollback(function () {
+                  callback(err2, null);
+                });
+              } else {
+                let sql = "INSERT INTO seller_transactions SET ?";
+                connection.query(sql,{ SellerId: Id, Process, Amount, Method, TransactionDate },function (err4, result) {
+                    if (err4) {
+                      return connection.rollback(function() {
+                        callback(err4, null)
+                      })
+                    } else {
+                      let TransactionId = result.insertId
+                      connection.commit(function (err3) {
+                        if (err3) {
+                          return connection.rollback(function () {
+                            callback(err3, null);
+                          });
+                        } else {
+                          callback(null, {
+                            TransactionId,
+                            success: true,
+                          });
+                        }
+                      });
+                    }
+                  }
+                );
+              }
+            });
+          }
+        });
+      }
+    });
+  })
 }
 
 //get all transactions of seller

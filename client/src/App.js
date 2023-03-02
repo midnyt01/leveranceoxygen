@@ -36,6 +36,9 @@ import AdminSellerAccountLists from "./routes/admin/admin-seller-account-list";
 import AdminCurrentSellerAccount from "./routes/admin/admin-current-seller-account/admin-current-seller-account";
 import CreateSellerOrder from "./routes/admin/seller-create-order/create-seller-order";
 import AdminSellerReturnOrders from "./routes/admin/admin-seller-return-orders/admin-seller-return-orders";
+import DemandOrders from "./routes/admin/admin-demand-orders/admin-demand-orders.component";
+import CreateSellerOrderFromDemand from "./routes/admin/admin-create-seller-order-demand/admin-create-seller-order-demand.component";
+import CreateSellerDemandOrder from "./routes/admin/admin-create-seller-demand-order/admin-create-seller-demand.component";
 
 library.add(fas);
 
@@ -120,6 +123,14 @@ function App() {
         }
       />
       <Route
+        path="/admin/demand-orders"
+        element={
+          <ProtectedRoute>
+            <DemandOrders />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/admin/seller-return-orders"
         element={
           <ProtectedRoute>
@@ -167,6 +178,15 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="admin/create-seller-demand-order/*"
+        element={
+          <ProtectedRoute>
+            <CreateSellerDemandOrder />
+          </ProtectedRoute>
+        }
+      />
+
 
       {/* Seller Panel */}
       <Route path="/seller/seller-login" element={<Sellerlogin />} />

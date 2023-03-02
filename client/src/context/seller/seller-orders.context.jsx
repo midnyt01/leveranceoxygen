@@ -139,6 +139,7 @@ export const SellerOrdersProvider = ({ children }) => {
     if (sellerInfo) {
       sellerSocket.on("update_seller_orders", async (data) => {
         if (isSellerLogin) {
+          console.log('receiving created seller order')
           if (Number(data.currentSeller) == sellerInfo.SellerId ) {
             const sellerTransactionArray = await httpGetAllSellerTransactions();
             setSellerTransactions(sellerTransactionArray);
@@ -156,6 +157,27 @@ export const SellerOrdersProvider = ({ children }) => {
     return () => sellerSocket.off("update_seller_orders")
 }, [sellerSocket, sellerInfo, sellerNotifications])
 
+useEffect(() => {
+  if (sellerInfo) {
+    sellerSocket.on("update_seller_demand_orders", async (data) => {
+      if (isSellerLogin) {
+        console.log('receiving created seller order')
+        if (Number(data.sellerId) == sellerInfo.SellerId ) {
+          const sellerTransactionArray = await httpGetAllSellerTransactions();
+          setSellerTransactions(sellerTransactionArray);
+          const sellerOrdersArray = await httpGetAllSellerOrders();
+          setSellerOrders(sellerOrdersArray);
+          let message = 'Leverance Oxygen has created your order';
+          let messageLink = '/seller'
+          let messageId = makeid(5)
+          setSellerNotifications([{messageId, message, messageLink}, ...sellerNotifications])
+        }
+      }
+  })
+  }
+
+  return () => sellerSocket.off("update_seller_orders")
+}, [sellerSocket, sellerInfo, sellerNotifications])
 
 useEffect(() => {
   sellerSocket.on("update_order_status", (data) => {

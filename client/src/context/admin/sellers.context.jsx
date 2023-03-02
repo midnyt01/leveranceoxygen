@@ -4,8 +4,10 @@ import { useState } from "react";
 import { createContext } from "react";
 import {
   httpCreateSeller,
+  httpCreateSellerDemandOrder,
   httpCreateSellerOrder,
   httpDeleteSeller,
+  httpGetAllSellerDemandOrders,
   httpGetAllSellerReturnOrders,
   httpGetAllSellers,
   httpGetAllSellersOrders,
@@ -17,18 +19,28 @@ import {
 } from "../../utils/nodejs/admin";
 import { AdminNotificationsContext } from "./admin-notifications.context";
 import { AdminAuthContext } from "./auth.context";
-import {adminSocket, makeid} from "../socket.io"
+import { adminSocket, makeid } from "../socket.io";
 import { ProductsContext } from "./products.context";
 
-
-const findSellerName = (SellerId, sellersList) => {
-  console.log(sellersList)
-  for (let i = 0; i < sellersList.length; i++) {
-    if (sellersList[i].SellerId === SellerId) {
-      return sellersList[i].FirmName
+const updateDemandOrderArray = (sellerDemandOrders, DemandId) => {
+  let newDemandArray = sellerDemandOrders;
+  for (let i = 0; i < newDemandArray.length; i++) {
+    if (newDemandArray[i].DemandId == DemandId) {
+      newDemandArray[i].IsCreated = 1;
+      break;
     }
   }
+  return [...newDemandArray]
 }
+
+const findSellerName = (SellerId, sellersList) => {
+  console.log(sellersList);
+  for (let i = 0; i < sellersList.length; i++) {
+    if (sellersList[i].SellerId === SellerId) {
+      return sellersList[i].FirmName;
+    }
+  }
+};
 
 const addSellerToSellersList = async (sellerToAdd, sellersList) => {
   for (let i = 0; i < sellersList.length; i++) {
@@ -111,9 +123,9 @@ const updateSellerOrderStattus = async (
         );
         if (response.ok) {
           sellersOrders[i].Status = newStatus;
-          console.log('sending details', {
-            OrderToUpdate
-          })
+          console.log("sending details", {
+            OrderToUpdate,
+          });
           adminSocket.emit("update_seller_order_status", {
             SellerId: OrderToUpdate.SellerId,
             OrderId: OrderToUpdate.OrderId,
@@ -122,7 +134,7 @@ const updateSellerOrderStattus = async (
           return [...sellersOrders];
         }
       } catch (error) {
-        console.log('error in updating seller order', error)
+        console.log("error in updating seller order", error);
       }
     }
   }
@@ -145,23 +157,30 @@ export const SellersContext = createContext({
   updateCurrentSellerOrders: () => {},
   updateCurrentSellerTransactions: () => {},
   updateCurrentSellerInfo: () => {},
-  updateSellerReturnOrderstatus:() => {},
+  updateSellerReturnOrderstatus: () => {},
   createSellerOrder: () => {},
+  createSellerOrderFromDemand: () => {},
+  sellerDemandOrders: [],
 });
 
 export const SellersProvider = ({ children }) => {
   const { isAdminLogin } = useContext(AdminAuthContext);
 
-  const {adminNotifications , setAdminNotifications} = useContext(AdminNotificationsContext)
-  const {updateAllProducts, setAllProducts} = useContext(ProductsContext)
+  const { adminNotifications, setAdminNotifications } = useContext(
+    AdminNotificationsContext
+  );
+  const { updateAllProducts, setAllProducts } = useContext(ProductsContext);
 
   const [sellersList, setSellersList] = useState([]);
   const [sellersOrders, setSellersOrders] = useState([]);
   const [currentSeller, setCurrentSeller] = useState(null);
   const [currentSellerInfo, setCurrentSellerInfo] = useState(null);
   const [currentSellerOrders, setCurrentSellerOrders] = useState([]);
-  const [currentSellerTransactions, setCurrentSellerTransactions] = useState([]);
+  const [currentSellerTransactions, setCurrentSellerTransactions] = useState(
+    []
+  );
   const [sellerReturnOrders, setSellerReturnOrders] = useState([]);
+  const [sellerDemandOrders, setSellerDemandOrders] = useState([]);
 
   //getting all the sellers
   useEffect(() => {
@@ -218,7 +237,7 @@ export const SellersProvider = ({ children }) => {
         let SellerTransactions = await httpGetSellerTransactionsBySellerId(
           currentSeller
         );
-        console.log(SellerTransactions)
+        console.log(SellerTransactions);
         setCurrentSellerTransactions(SellerTransactions);
       }
     };
@@ -233,7 +252,17 @@ export const SellersProvider = ({ children }) => {
       }
     };
     getSellerReturnOrders();
-  },[isAdminLogin]);
+  }, [isAdminLogin]);
+
+  useEffect(() => {
+    const getSellerDemandOrders = async () => {
+      if (isAdminLogin) {
+        let SellerDemandOrdersArray = await httpGetAllSellerDemandOrders();
+        setSellerDemandOrders(SellerDemandOrdersArray);
+      }
+    };
+    getSellerDemandOrders();
+  }, [isAdminLogin]);
 
   //socket code
 
@@ -241,57 +270,77 @@ export const SellersProvider = ({ children }) => {
     adminSocket.on("update_seller_account_balance", async (data) => {
       if (isAdminLogin) {
         let SellerInfo = await httpGetSellerById(currentSeller);
-            setCurrentSellerInfo(SellerInfo);  
+        setCurrentSellerInfo(SellerInfo);
       }
-    }); 
+    });
 
-    return () => adminSocket.off("update_seller_account_balance")
-
+    return () => adminSocket.off("update_seller_account_balance");
   }, [currentSeller, adminSocket, isAdminLogin]);
 
   useEffect(() => {
-
     adminSocket.on("update_seller_demand", async (data) => {
       if (isAdminLogin) {
-        console.log('demand received')
-        let SellerInfo = await httpGetSellerById(currentSeller);
+        console.log("demand received");
+        if (currentSeller) {
+          let SellerInfo = await httpGetSellerById(currentSeller);
           setCurrentSellerInfo(SellerInfo);
-          let SellerName = findSellerName(data.SellerId, sellersList)
-          let message = `${SellerName} requested for ${data.quantity} cylinders`;
-          let messageLink = `/all-sellers/${data.SellerId}`
-          let messageId = makeid(5)
-          console.log('adding demand message to notification')
-          setAdminNotifications([{messageId, message, messageLink}, ...adminNotifications])
-          console.log('added demand message')
+        }
+        let SellerDemandOrdersArray = await httpGetAllSellerDemandOrders();
+        setSellerDemandOrders(SellerDemandOrdersArray);
+        let SellerName = findSellerName(data.SellerId, sellersList);
+        let message = `${SellerName} requested for ${data.quantity} cylinders`;
+        let messageLink = `/admin/demand-orders`;
+        let messageId = makeid(5);
+        console.log("adding demand message to notification");
+        setAdminNotifications([
+          { messageId, message, messageLink },
+          ...adminNotifications,
+        ]);
+        console.log("added demand message");
       }
-    })
+    });
 
-    return () => adminSocket.off("update_seller_demand")
-
-  }, [currentSeller, adminSocket, adminNotifications, sellersList, currentSellerInfo, isAdminLogin]);
-  
+    return () => adminSocket.off("update_seller_demand");
+  }, [
+    currentSeller,
+    adminSocket,
+    adminNotifications,
+    sellersList,
+    currentSellerInfo,
+    isAdminLogin,
+    sellerDemandOrders
+  ]);
 
   useEffect(() => {
-    adminSocket.on("update_seller_return_orders_list", async ({SellerId, orderToAdd}) => {
-      if (isAdminLogin) {
-        console.log('receiving refill order request')
-        let SellerReturnOrdersArray = await httpGetAllSellerReturnOrders();
-        setSellerReturnOrders(SellerReturnOrdersArray);
-        let SellerName = findSellerName(SellerId, sellersList);
-        let messageId = makeid(5);
-        let messageLink = '/admin/seller-return-orders';
-        let message = `${SellerName} places a return order`
-        setTimeout(() => {
-          setAdminNotifications([{messageId, message, messageLink}, ...adminNotifications])
-        }, 500);
+    adminSocket.on(
+      "update_seller_return_orders_list",
+      async ({ SellerId, orderToAdd }) => {
+        if (isAdminLogin) {
+          console.log("receiving refill order request");
+          let SellerReturnOrdersArray = await httpGetAllSellerReturnOrders();
+          setSellerReturnOrders(SellerReturnOrdersArray);
+          let SellerName = findSellerName(SellerId, sellersList);
+          let messageId = makeid(5);
+          let messageLink = "/admin/seller-return-orders";
+          let message = `${SellerName} places a return order`;
+          setTimeout(() => {
+            setAdminNotifications([
+              { messageId, message, messageLink },
+              ...adminNotifications,
+            ]);
+          }, 500);
+        }
       }
-    })
+    );
 
-    return () => adminSocket.off("update_seller_return_orders_list")
-
-  }, [adminSocket, sellerReturnOrders, adminNotifications, sellersList, isAdminLogin])
-
-
+    return () => adminSocket.off("update_seller_return_orders_list");
+  }, [
+    adminSocket,
+    sellerReturnOrders,
+    adminNotifications,
+    sellersList,
+    isAdminLogin,
+  ]);
 
   const addNewSeller = async (sellerToAdd) => {
     const newSellersList = await addSellerToSellersList(
@@ -325,47 +374,54 @@ export const SellersProvider = ({ children }) => {
   //update current seller orders on creating orders
 
   const updateCurrentSellerOrders = (OrderId, Payload) => {
-    let date = new Date()
-    let CreatedAt = date.toDateString()
+    let date = new Date();
+    let CreatedAt = date.toDateString();
     let newOrder = {
       OrderId,
       CreatedAt,
       Status: "Booked",
       Payload,
-      SellerId: currentSeller
-    }
+      SellerId: currentSeller,
+    };
     setCurrentSellerOrders([newOrder, ...currentSellerOrders]);
-    setSellersOrders([newOrder, ...sellersOrders])
-  }
+    setSellersOrders([newOrder, ...sellersOrders]);
+  };
 
   //update current seller transactions on creating orders
 
-  const updateCurrentSellerTransactions = (TransactionId, Amount,OrderId) => {
-    let date = new Date()
-    let TransactionDate = date.toDateString()
+  const updateCurrentSellerTransactions = (TransactionId, Amount, OrderId) => {
+    let date = new Date();
+    let TransactionDate = date.toDateString();
     let newTransactions = {
       TransactionId,
       TransactionDate,
       Process: 0,
       SellerId: currentSeller,
       Amount,
-      OrderId
-    }
-    setCurrentSellerTransactions([newTransactions, ...currentSellerTransactions])
-  }
+      OrderId,
+    };
+    setCurrentSellerTransactions([
+      newTransactions,
+      ...currentSellerTransactions,
+    ]);
+  };
 
   //update current seller count and demand
   const updateCurrentSellerInfo = (Payload, Amount) => {
     let sellerInfo = currentSellerInfo;
-    sellerInfo.Count = Payload.length + Number(sellerInfo.Count)
-    sellerInfo.Demand = Number(sellerInfo.Demand) - Payload.length
-    sellerInfo.Balance = Number(sellerInfo.Balance) - Number(Amount)
-    setCurrentSellerInfo(sellerInfo)
-  }
+    sellerInfo.Count = Payload.length + Number(sellerInfo.Count);
+    sellerInfo.Demand = Number(sellerInfo.Demand) - Payload.length;
+    sellerInfo.Balance = Number(sellerInfo.Balance) - Number(Amount);
+    setCurrentSellerInfo(sellerInfo);
+  };
 
   //upadte seller return order status
 
-  const updateSellerReturnOrderstatus = async (orderDetails, ReturnOrderId, SellerId) => {
+  const updateSellerReturnOrderstatus = async (
+    orderDetails,
+    ReturnOrderId,
+    SellerId
+  ) => {
     let response = await httpUpdateSellerReturnOrder(
       orderDetails,
       ReturnOrderId
@@ -374,39 +430,76 @@ export const SellersProvider = ({ children }) => {
       let SellerReturnOrdersArray = await httpGetAllSellerReturnOrders(); // or update seller return order manually in front end
       setSellerReturnOrders(SellerReturnOrdersArray);
       if (orderDetails.Cylinders != null) {
-        updateAllProducts()
+        updateAllProducts();
         if (Number(currentSeller) === SellerId) {
-          console.log(currentSellerInfo)
-          let sellerInfo = currentSellerInfo
-          sellerInfo.Count = Number(currentSellerInfo.Count) - orderDetails.Cylinders.length
-          setCurrentSellerInfo(sellerInfo)
+          console.log(currentSellerInfo);
+          let sellerInfo = currentSellerInfo;
+          sellerInfo.Count =
+            Number(currentSellerInfo.Count) - orderDetails.Cylinders.length;
+          setCurrentSellerInfo(sellerInfo);
         }
       }
-      adminSocket.emit("update_seller_return_order_status", {ReturnOrderId, SellerId, Status: orderDetails.Status}  )
+      adminSocket.emit("update_seller_return_order_status", {
+        ReturnOrderId,
+        SellerId,
+        Status: orderDetails.Status,
+      });
     }
-  }
+  };
 
   //Create seller order
 
   const createSellerOrder = async (OrderDetails) => {
-    const {Cylinders, Amount} = OrderDetails
+    const { Cylinders, Amount } = OrderDetails;
     try {
-      let response = await httpCreateSellerOrder(OrderDetails, currentSeller )
-      console.log({response})
+      let response = await httpCreateSellerOrder(OrderDetails, currentSeller);
+      console.log({ response });
       if (response.success) {
         updateCurrentSellerOrders(response.OrderId, Cylinders);
-        updateCurrentSellerTransactions(response.TransactionId, Amount, response.OrderId);
-        updateCurrentSellerInfo(Cylinders, Amount)
-        updateAllProducts()
-        adminSocket.emit("created_seller_order", {currentSeller})
+        updateCurrentSellerTransactions(
+          response.TransactionId,
+          Amount,
+          response.OrderId
+        );
+        updateCurrentSellerInfo(Cylinders, Amount);
+        updateAllProducts();
+        adminSocket.emit("created_seller_order", { currentSeller });
       } else {
-        console.log('order not placed', response)
+        console.log("order not placed", response);
       }
     } catch (error) {
-      console.log('error in creating order', error)
+      console.log("error in creating order", error);
     }
-  }
-  
+  };
+
+  const createSellerOrderFromDemand = async (OrderDetails, DemandId) => {
+    const { Cylinders, Amount } = OrderDetails;
+    try {
+      let response = await httpCreateSellerDemandOrder(OrderDetails, DemandId);
+      console.log({ response });
+      if (response.success) {
+        updateCurrentSellerOrders(response.OrderId, Cylinders);
+        updateCurrentSellerTransactions(
+          response.TransactionId,
+          Amount,
+          response.OrderId
+        );
+        let sellerId = response.sellerId;
+        // updateCurrentSellerInfo(Cylinders, Amount);
+        updateAllProducts();
+        let newDemandOrderArray = updateDemandOrderArray(sellerDemandOrders, DemandId);
+        console.log('new updated demand order array ', newDemandOrderArray)
+        setSellerDemandOrders(newDemandOrderArray);
+        adminSocket.emit("created_seller_demand_order", { sellerId });
+      } else {
+        console.log("order not placed", response);
+      }
+    } catch (error) {
+      console.log("error in creating order", error);
+    }
+  };
+
+
 
   const value = {
     sellersList,
@@ -415,7 +508,7 @@ export const SellersProvider = ({ children }) => {
     deleteSeller,
     sellersOrders,
     setSellersOrders,
-    updateSellerOrder,    //order-status
+    updateSellerOrder, //order-status
     currentSeller,
     changeCurrentSeller,
     currentSellerInfo,
@@ -427,6 +520,8 @@ export const SellersProvider = ({ children }) => {
     updateCurrentSellerInfo,
     updateSellerReturnOrderstatus,
     createSellerOrder,
+    createSellerOrderFromDemand,
+    sellerDemandOrders,
   };
 
   return (

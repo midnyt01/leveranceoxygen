@@ -75,6 +75,19 @@ export const SellerAuthProvider = ({children}) => {
         return () => sellerSocket.off("update_seller_orders")
     }, [sellerSocket, sellerInfo])
 
+    useEffect(() => {
+        sellerSocket.on("update_seller_demand_orders", async (data) => {
+            if (isSellerLogin) {
+                if (Number(data.sellerId) == sellerInfo.SellerId ) {
+                    const sellerInfoData = await httpGetCurrentSellerInfo()
+                    setSellerInfo(sellerInfoData)
+                }
+            }
+        })
+
+        return () => sellerSocket.off("update_seller_demand_orders")
+    }, [sellerSocket, sellerInfo])
+
     const AddDemandCylinders = async (quantity) => {
         let newSellerInfo = await updateDemandCylinders(quantity, sellerInfo)
         setSellerInfo(newSellerInfo)

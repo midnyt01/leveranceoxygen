@@ -60,7 +60,7 @@ const NotificationPanel = ({notificationToggle}) => {
                 </div>
               )
             }
-        <div onClick={handleClearNotification}>Clear all All</div>
+        <div onClick={handleClearNotification}>Clear All</div>
         </ul>
       </div>
     </div>

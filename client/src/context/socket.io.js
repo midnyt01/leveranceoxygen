@@ -1,7 +1,30 @@
 import io from "socket.io-client";
 
-export const adminSocket = io.connect("https://api.leveranceoxygen.com");
-export const sellerSocket = io.connect("https://api.leveranceoxygen.com");
+export const adminSocket = io("https://api.leveranceoxygen.com", {
+  withCredentials: true,
+
+    transportOptions: {
+        polling: {
+          extraHeaders: {
+            "my-custom-header": "abcd"
+          }
+        }
+    }
+});
+export const sellerSocket = io("https://api.leveranceoxygen.com", {
+  withCredentials: true,
+
+    transportOptions: {
+        polling: {
+          extraHeaders: {
+            "my-custom-header": "abcd"
+          }
+        }
+    }
+});
+
+// export const adminSocket = io("http://localhost:8000");
+// export const sellerSocket = io("http://localhost:8000");
 
 export function makeid(length) {
     let result = '';

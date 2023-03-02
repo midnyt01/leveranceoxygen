@@ -20,6 +20,9 @@ const {
   getAllSellerReturnOrders,
   getSellerOrdersBySellerId,
   getSellerTransactionsBySellerId,
+  getAllSellerDemandOrders,
+  updateSellerDemandOrder,
+  createSellerDemandOrder,
 } = require("../../models/admin.model");
 
 async function httpCreateAdminAccount(req, res) {
@@ -89,6 +92,27 @@ async function httpCreateSellerOrder (req, res) {
       res.status(400).json(err)
     } else {
       res.status(200).json(data)
+    }
+  })
+}
+
+async function httpCreateSellerDemandOrder (req, res) {
+  let DemandId = req.params.id;
+  await createSellerDemandOrder(DemandId, req.body, async function(err, data) {
+    if (err) {
+      res.status(400).json(err)
+    } else {
+      res.status(200).json(data)
+    }
+  })
+}
+
+async function httpGetAllSellerDemandOrders (req, res) {
+  await getAllSellerDemandOrders(function(err, data) {
+    if (err) {
+      res.status(400).json(err)
+    } else {
+      res.status(200).json(data);
     }
   })
 }
@@ -255,6 +279,8 @@ module.exports = {
   httpGetSellerById,
   httpDeleteSellerById,
   httpCreateSellerOrder,
+  httpCreateSellerDemandOrder,
+  httpGetAllSellerDemandOrders,
   httpAddNewProduct,
   httpGetAllProducts,
   httpGetProductById,

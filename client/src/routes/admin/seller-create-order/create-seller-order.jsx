@@ -4,8 +4,6 @@ import { Link, useNavigate } from "react-router-dom";
 import Topbar from "../../../component/admin-panel-components/admin-topbar/topbar.component";
 import { ProductsContext } from "../../../context/admin/products.context";
 import { SellersContext } from "../../../context/admin/sellers.context";
-import { SellerOrdersContext } from "../../../context/seller/seller-orders.context";
-import { httpCreateSellerOrder } from "../../../utils/nodejs/admin";
 
 
 
@@ -13,8 +11,8 @@ const CreateSellerOrder = () => {
 
   const navigate = useNavigate()
 
-  const {allProducts} = useContext(ProductsContext)
-  const {currentSeller, createSellerOrder} = useContext(SellersContext)
+  const {allProducts} = useContext(ProductsContext);
+  const {currentSeller, createSellerOrder} = useContext(SellersContext);
 
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [availableProducts, setAvailableProducts] = useState([])

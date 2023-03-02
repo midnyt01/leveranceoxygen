@@ -11,9 +11,8 @@ const server = http.createServer(app)
 
 
 const io = new Server(server, {
-    secure: true,
     cors: {
-        origin: ['https://localhost:3000',
+        origin: ['http://localhost:3000',
         'https://leveranceoxygen.com'],
     }
     
@@ -43,6 +42,9 @@ io.on("connection", (socket) => {
     //seller notification
     socket.on("created_seller_order", (data) => {
         socket.broadcast.emit("update_seller_orders", data)
+    })
+    socket.on("created_seller_demand_order", (data) => {
+        socket.broadcast.emit("update_seller_demand_orders", data)
     })
 
     socket.on("update_seller_order_status", (data) => {

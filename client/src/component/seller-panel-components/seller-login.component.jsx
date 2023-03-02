@@ -46,6 +46,7 @@ const SellerLoginForm = () => {
                 <div className='cards-basic login-card m-auto'>
                     <div className='mt-5 card-content'>
                         <img src={leveranceOxygenLogo} alt="Leverance Global Logo" className='main-logo-lg mb-2'/>
+                        <h2>Seller Panel</h2>
                         <form onSubmit={handleOnSubmit}>  
                             <label className='login-label'>  
                                 <input
