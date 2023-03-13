@@ -5,6 +5,14 @@ import { httpAddProduct, httpDeleteProduct, httpGetAllProducts } from "../../uti
 import { AdminAuthContext } from "./auth.context";
 
 
+const addIsChecked = async () => {
+    const productsArray = await httpGetAllProducts();
+    for (let i = 0; i < productsArray.length; i++) {
+        productsArray[i].IsChecked = false;
+    }
+    return productsArray;
+}
+
 const addProductToAllProducts = async(productToAdd, allProducts) => {
 
     //validating if productToAdd already exists or not
@@ -76,7 +84,7 @@ export const ProductsProvider = ({children}) => {
     useEffect(() => {
         const getProductsArray = async () => { 
             if (isAdminLogin) {
-                const productsArray = await httpGetAllProducts()
+                const productsArray = await addIsChecked();
                 setAllProducts(productsArray)
             }
         }
@@ -94,8 +102,7 @@ export const ProductsProvider = ({children}) => {
     }
 
     const updateAllProducts = async () => {
-        const productArray = await httpGetAllProducts()
-        console.log({productArray})
+        const productArray = await addIsChecked()
         setAllProducts([...productArray])
     }
 

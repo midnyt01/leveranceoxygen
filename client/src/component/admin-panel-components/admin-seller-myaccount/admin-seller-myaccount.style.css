@@ -1,0 +1,226 @@
+.balance-info-wrapper {
+    gap: 20px;
+  }
+  
+  .balance-info {
+    background: #dedede;
+    width: 80%;
+    padding: 5px 10px;
+    border-radius: 7px;
+  }
+  
+  .balance-item {
+    margin: 2px 0 1px 0;
+    font-weight: bold;
+    font-size: 15px;
+  }
+  
+  .balance-number {
+    margin: 0px;
+    font-size: 22px;
+  }
+
+  .seller-demand-info-container{
+    background: rgb(222, 222, 222);
+    width: 50%;
+    padding: 5px 10px;
+    border-radius: 7px;
+    margin: 15px 0px;
+  }
+  .seller-demand-info-title {
+    margin: 2px 0 1px 0;
+    font-weight: bold;
+    font-size: 15px;
+  }
+  .seller-demand-info-item {
+    margin: 0px;
+    font-size: 17px;
+  }
+  
+  .add-seller-balance-wrapper {
+    z-index: 1;
+    background-color: whitesmoke;
+    position: absolute;
+    width: 80%;
+    height: 200px;
+    border-radius: 10px;
+    box-sizing: border-box;
+    padding: 20px 0px;
+    box-shadow: 2.8px 2.8px 2.2px rgba(0, 0, 0, 0.02),
+      6.7px 6.7px 5.3px rgba(0, 0, 0, 0.028),
+      12.5px 12.5px 10px rgba(0, 0, 0, 0.035),
+      22.3px 22.3px 17.9px rgba(0, 0, 0, 0.042),
+      41.8px 41.8px 33.4px rgba(0, 0, 0, 0.05),
+      100px 100px 80px rgba(0, 0, 0, 0.07);
+    top: 120px;
+    left: 0;
+    right: 0;
+    margin: auto;
+  }
+  
+  .add-seller-balance-form {
+      width: 80%;
+      margin: auto;
+      position: relative;
+  }
+  
+  .add-seller-balance-amount {
+      width: 95%;
+      margin: auto;
+      font-size: 17px;
+      border: 1px solid grey;
+      border-radius: 4px;
+      box-sizing: border-box;
+      padding: 4px;
+      margin-bottom: 15px;
+  }
+  
+  .add-seller-balance-confirm {
+      box-sizing: border-box;
+      padding: 5px 10px;
+      letter-spacing: 0.5px;
+      font-size: 15px;
+  }
+  
+  .add-seller-balance-close {
+      position: absolute;
+      font-size: 20px;
+      font-weight: bold;
+      top: -17px;
+      right: -17px;
+      cursor: pointer;
+      box-sizing: border-box;
+      padding: 4px;
+  }
+  
+  
+  .add-seller-demand-form {
+      width: 80%;
+      margin: auto;
+      position: relative;
+  }
+  
+  .change-seller-demand {
+    font-size: 30px;
+    margin: 0px 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  
+
+  
+  .add-seller-demand-confirm {
+      box-sizing: border-box;
+      padding: 5px 30px;
+      letter-spacing: 0.5px;
+      font-size: 15px;
+      cursor: pointer;
+  }
+  
+  .add-seller-demand-close {
+      position: absolute;
+      font-size: 20px;
+      font-weight: bold;
+      top: -17px;
+      right: -17px;
+      cursor: pointer;
+      box-sizing: border-box;
+      padding: 4px;
+  }
+  
+  .type-selector-top {
+    background-color: #555555;
+    height: 3px;
+    border: none;
+    border-radius: 2px;
+    margin: 0px;
+  }
+  
+  .type-selector-order {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+    padding: 7px 0px;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 400ms ease;
+  }
+  
+  .type-selector-transaction {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+    padding: 7px 0px;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 400ms ease;
+  }
+  
+  .seller-order-filter-wrapper {
+    width: 90%;
+    margin: 0px auto;
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .seller-order-filter-title {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  #seller-order-filter {
+    box-sizing: border-box;
+    padding: 5px;
+  }
+  
+  #seller-transaction-filter {
+    box-sizing: border-box;
+    padding: 5px;
+  }
+  
+  .seller-tab-list {
+    margin: 25px auto;
+  }
+  
+  .seller-cards-basic {
+    border: 1px solid black;
+    width: 95%;
+    margin: 20px auto;
+    box-sizing: border-box;
+    padding: 10px 17px;
+    border-radius: 10px;
+  }
+  
+  .order-created-date {
+    margin-top: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    color: lightslategray;
+  }
+  .delivered-date {
+    margin-top: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    color: lightslategray;
+  }
+  .transaction-date {
+    margin: 10px 0 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: lightslategray;
+  }
+  
+  .order-transaction-tab-wrapper .cards-basic {
+    border: 1px solid #000;
+    padding: 10px;
+  }
+  

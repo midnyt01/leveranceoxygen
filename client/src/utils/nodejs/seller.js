@@ -68,6 +68,42 @@ async function httpGetSellerReturnOrders () {
     return await response.json()
 }
 
+async function httpGetSellerConfirmationOrders () {
+    const authToken = localStorage.getItem("seller");
+    const response = await fetch(`${API}/confirmationorders`, {
+        method: "get",
+        headers: {
+            "auth-token": `${authToken}`
+        }
+    })
+    return await response.json()
+}
+
+async function httpConfirmSellerOrder (orderDetails, OrderId) {
+    const authToken = localStorage.getItem("seller")
+    const response = await fetch(`${API}/confirmationorders/${OrderId}`, {
+        method: "post",
+        headers: {
+            "Content-Type": "application/json",
+            "auth-token": `${authToken}`
+        },
+        body: JSON.stringify(orderDetails)
+    })
+    return await response.json()
+}
+
+async function httpCancleSellerOrder (OrderId) {
+    const authToken = localStorage.getItem("seller")
+    const response = await fetch(`${API}/confirmationorders/${OrderId}`, {
+        method: "put",
+        headers: {
+            "Content-Type": "application/json",
+            "auth-token": `${authToken}`
+        }
+    })
+    return await response.json()
+}
+
 async function httpAddSellerBalance (transactionDetail) {
     const authToken = localStorage.getItem("seller")
     const response = await fetch(`${API}/addbalance`, {
@@ -81,7 +117,7 @@ async function httpAddSellerBalance (transactionDetail) {
     return await response.json()
 }
 
-async function httpDemandCylinders (cylinders) {
+async function httpDemandCylinders (quantity) {
     const authToken = localStorage.getItem("seller")
     const response = await fetch(`${API}/demandcylinders`, {
         method: "post",
@@ -89,8 +125,9 @@ async function httpDemandCylinders (cylinders) {
             "Content-Type": "application/json",
             "auth-token": `${authToken}`
         },
-        body: JSON.stringify(cylinders)
+        body: JSON.stringify(quantity)
     })
+    console.log('we are getting response')
     return await response.json()
 }
 
@@ -129,6 +166,9 @@ export {
     httpGetAllSellerOrders,
     httpGetAllSellerTransactions,
     httpGetSellerReturnOrders,
+    httpGetSellerConfirmationOrders,
+    httpConfirmSellerOrder,
+    httpCancleSellerOrder,
     httpAddSellerBalance,
     httpDemandCylinders,
     httpCreateSellerReturnOrder,

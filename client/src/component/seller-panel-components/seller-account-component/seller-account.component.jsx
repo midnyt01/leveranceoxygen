@@ -7,6 +7,11 @@ import { SellerOrdersContext } from "../../../context/seller/seller-orders.conte
 import { useEffect } from "react";
 
 //change select option when changing order and transaction
+const DEFAULT_QUANTITY = {
+  Small : '',
+  Medium: '',
+  Large: ''
+}
 
 const SellerAccount = () => {
   //getting seller info from seller auth context
@@ -26,7 +31,7 @@ const SellerAccount = () => {
   const [openDemandCard, setOpenDemandCard] = useState(false)
 
   const [amount, setAmount] = useState("");
-  const [quantity, setQuantity] = useState("")
+  const [quantity, setQuantity] = useState(DEFAULT_QUANTITY)
 
   const [isConfirmDisable, setIsConfirmDisable] = useState(true);
   const [isDemandConfirm, setIsDemandConfirm] = useState(true)
@@ -49,19 +54,24 @@ const SellerAccount = () => {
   }, [amount]);
 
   useEffect(() => {
-    if (quantity !== "" && quantity > 0) {
+    const {Small, Medium, Large} = quantity;
+    if ((Small !== "" && Small > 0) || (Medium !== "" && Medium > 0) || (Large !== "" && Large > 0)) {
       setIsDemandConfirm(false)
+    }
+    if ((Small == "" || Small == 0) && (Medium == "" || Medium == 0) && (Large == "" || Large == 0)) {
+      setIsDemandConfirm(true);
     }
   }, [quantity])
 
+ 
   const handleAmountChange = (e) => {
     const value = e.target.value;
     setAmount(value);
   };
 
   const handleQuantityChange = (e) => {
-    const value = e.target.value;
-    setQuantity(value)
+    const {name, value} = e.target;
+    setQuantity({...quantity, [name] : value});
   }
 
   const toggleOpenPayment = () => {
@@ -127,27 +137,16 @@ const SellerAccount = () => {
   };
 
   const handleAddDemand = async (e) => {
-    let showQuantity = quantity
+    const {Small, Medium, Large} = quantity;
+    let showQuantity = (Number(Small) + Number(Medium) + Number(Large));
     e.preventDefault();
-    AddDemandCylinders(quantity);
-    setQuantity("");
+    AddDemandCylinders({quantity, Refill: false});
+    setQuantity(DEFAULT_QUANTITY);
     setDemandStatus({success: true, quantity: showQuantity});
     setTimeout(() => {
       setDemandStatus({success: "none", quantity: 0});
       setOpenDemandCard(false);
     }, 1200);
-  }
-
-  const decreaseDemandCount = () => {
-    if (quantity !== "" && quantity > 0) {
-      setQuantity(Number(quantity) - 1)
-    }
-  }
-
-  const increaseDemandCount = () => {
-    if (quantity !== "" && quantity >= 0) {
-      setQuantity(Number(quantity) + 1)
-    }
   }
 
   if (sellerInfo !== null) {
@@ -161,7 +160,9 @@ const SellerAccount = () => {
       State,
       Balance,
       Count,
-      Demand,
+      Small,
+      Medium,
+      Large
     } = sellerInfo;
 
     return (
@@ -183,11 +184,13 @@ const SellerAccount = () => {
               <p className="balance-item">Count</p>
               <p className="balance-number cta-link-2">{Count}</p>
             </div>
-            <div className="balance-info" style={{ flex: "3" }}>
-              <p className="balance-item">Demand</p>
-              <p className="balance-number dngr">{Demand}</p>
-            </div>
           </div>
+          <div className="seller-demand-info-container">
+              <p className="seller-demand-info-title">Demand</p>
+              <p className="seller-demand-info-item">Small: <span className="dngr">{Small}</span></p>
+              <p className="seller-demand-info-item">Medium: <span className="dngr">{Medium}</span></p>
+              <p className="seller-demand-info-item">Large: <span className="dngr">{Large}</span></p>
+            </div>
           <div className="mt-3 d-flex jc-space-btw">
             <Link
               className="btn cta-btn-bg-2 light-text f-weight-800"
@@ -241,14 +244,30 @@ const SellerAccount = () => {
             <div className="add-seller-demand-wrapper">
               <form className="add-seller-demand-form">
                 <div className="add-seller-demand-quantity-wrapper">
-                <div className="change-seller-demand" onClick={decreaseDemandCount}>-</div>
+                  <h3>Enter Cylinder Qunatities</h3>
+                {/* <div className="change-seller-demand" onClick={decreaseDemandCount}>-</div> */}
                 <input
-                  placeholder="Quantity"
+                  placeholder="Small"
                   className="add-seller-demand-quantity"
-                  value={quantity}
+                  name="Small"
+                  value={quantity.Small}
                   onChange={handleQuantityChange}
                 />
-                <div className="change-seller-demand" onClick={increaseDemandCount}>+</div>
+                <input
+                  placeholder="Medium"
+                  className="add-seller-demand-quantity"
+                  name="Medium"
+                  value={quantity.Medium}
+                  onChange={handleQuantityChange}
+                />
+                <input
+                  placeholder="Large"
+                  className="add-seller-demand-quantity"
+                  name="Large"
+                  value={quantity.Large}
+                  onChange={handleQuantityChange}
+                />
+                {/* <div className="change-seller-demand" onClick={increaseDemandCount}>+</div> */}
                 </div>
                 {demandStatus.success === true && (
                   <div

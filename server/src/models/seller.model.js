@@ -41,7 +41,7 @@ async function logInSeller(sellerCred, callback) {
 // get current seller info
 
 async function getCurrentSellerInfoById(Id, callback) {
-  let sql = `SELECT SellerId, FirmName, FirstName, LastName, PhoneNumber, Address, City, State, Balance, Count, Demand FROM sellers WHERE SellerId = ${Id}`;
+  let sql = `SELECT SellerId, FirmName, FirstName, LastName, PhoneNumber, Address, City, State, Balance, Count, Small, Medium, Large FROM sellers WHERE SellerId = ${Id}`;
   db.query(sql, function (err, result) {
     if (err) {
       callback(err, null);
@@ -51,7 +51,9 @@ async function getCurrentSellerInfoById(Id, callback) {
   });
 }
 
-async function demandCylinders(Id, cylinders, callback) {
+async function demandCylinders(Id, quantity, callback) {
+  console.log(quantity)
+  const {Small, Medium, Large} = quantity;
   db.getConnection(function(err, connection) {
     if (err) {
       callback(err, null);
@@ -60,15 +62,17 @@ async function demandCylinders(Id, cylinders, callback) {
         if (err) {
           callback(err, null)
         }
-        let sql0 = `SELECT Demand FROM sellers WHERE SellerId = ${Id}`
+        let sql0 = `SELECT Small, Medium, Large FROM sellers WHERE SellerId = ${Id}`
         connection.query(sql0, function(err0, result0) {
         if (err0) {
           return connection.rollback(function() {
             callback(err0, null)
           })
         } else {
-          let newDemand = Number(result0[0].Demand) + Number(cylinders)
-          let sql = `UPDATE sellers SET Demand = ${newDemand} WHERE SellerId = ${Id}`;
+          let newSmall = Number(result0[0].Small) + Number(Small)
+          let newMedium = Number(result0[0].Medium) + Number(Medium)
+          let newLarge = Number(result0[0].Large) + Number(Large)
+          let sql = `UPDATE sellers SET Small = ${newSmall}, Medium = ${newMedium}, Large = ${newLarge} WHERE SellerId = ${Id}`;
           connection.query(sql, function (err, result) {
             if (err) {
               return connection.rollback(function() {
@@ -76,7 +80,7 @@ async function demandCylinders(Id, cylinders, callback) {
               });
             } else {
               let sql = `INSERT INTO demand_orders SET ?`;
-              connection.query(sql, {SellerId : Id, Quantity: cylinders}, function(err, result) {
+              connection.query(sql, {SellerId : Id, Small, Medium, Large}, function(err, result) {
                 if (err) {
                   return connection.rollback(function() {
                     callback(err, null)
@@ -158,6 +162,149 @@ async function addBalanceToSellerAccount(Id, transaction, callback) {
         });
       }
     });
+  })
+}
+
+async function getSellerConfirmationOrders(Id, callback) {
+  let sql = `SELECT OrderId, Amount, Small, Medium, Large, CreatedAt FROM seller_orders WHERE SellerId = ${Id} AND IsConfirm = ${0} AND IsCancelled = ${0} ORDER BY OrderId DESC`
+  db.query(sql, function (err, result) {
+    if (err) {
+      callback(err, null);
+    } else {
+      callback(null, result);
+    }
+  });
+}
+
+
+async function confirmSellerOrder(sellerId, orderDetails, OrderId, callback) {
+  const { Amount, Quantity, CreatedAt } = orderDetails;
+  const { Small, Medium, Large } = Quantity;
+  db.getConnection(function (err, connection) {
+    if (err) {
+      callback(err, null);
+    }
+    connection.beginTransaction(async function (err) {
+      if (err) {
+        callback(err, null);
+      }
+      let sql = `UPDATE seller_orders SET Status = 'Booked', IsConfirm = ${1} WHERE OrderId = ${OrderId}`;
+      connection.query(sql, function (err, result) {
+        if (err) {
+          return connection.rollback(function () {
+            callback(err, null);
+          });
+        } else {
+          let sql = `SELECT Balance, Count, Small, Medium, Large FROM sellers WHERE SellerId = ${sellerId}`;
+          connection.query(sql, function (err4, result4) {
+            if (err4) {
+              return connection.rollback(function () {
+                callback(err4, null);
+              });
+            } else {
+              let Balance = result4[0].Balance;
+              let NetBalance = Balance - Amount;
+              let NewSmall = result4[0].Small - Number(Small);
+              let NewMedium = result4[0].Medium - Number(Medium);
+              let NewLarge = result4[0].Large - Number(Large);
+              let NewCount = Number(result4[0].Count) + Number(Small) + Number(Medium) + Number(Large);
+              let sql = `UPDATE sellers SET Balance = ${NetBalance}, Count = ${NewCount}, Small = ${NewSmall}, Medium = ${NewMedium}, Large = ${NewLarge} WHERE SellerId = ${sellerId}`;
+              connection.query(sql, function (err5, result5) {
+                if (err5) {
+                  return connection.rollback(function () {
+                    callback(err5, null);
+                  });
+                } else {
+                  let sql = `INSERT INTO seller_transactions SET ?`;
+                  connection.query(
+                    sql,
+                    {
+                      SellerId: sellerId,
+                      Process: 0,
+                      Amount,
+                      OrderId,
+                      TransactionDate: CreatedAt,
+                    },
+                    function (err6, result6) {
+                      if (err6) {
+                        return connection.rollback(function () {
+                          callback(err6, null);
+                        });
+                      } else {
+                        let TransactionId = result6.insertId
+                        connection.commit(function (err2) {
+                          if (err2) {
+                            return connection.rollback(function () {
+                              callback(err2, null);
+                            });
+                          } else {
+                            callback(null, {
+                              success: true,
+                              TransactionId
+                            });
+                          }
+                        });
+                      }
+                    }
+                  );
+                }
+              });
+            }
+          });
+        }
+      });
+    });
+  });
+}
+
+async function cancelSellerOrder (OrderId, callback) {
+  db.getConnection(function (err, connection) {
+    if (err) {
+      callback(err, null)
+    }
+    connection.beginTransaction(async function(err) {
+      if (err) {
+        callback(err, null)
+      }
+      let sql = `UPDATE seller_orders SET IsCancelled = ${1}, Editable = ${0}, IsConfirm = ${1}, Status = 'Cancelled' WHERE OrderId = ${OrderId}`
+      connection.query(sql, function(err, result) {
+        if (err) {
+          return connection.rollback(function() {
+            callback(err, null)
+          })
+        }
+        let sql = `SELECT * FROM seller_order_payload WHERE OrderId = ${OrderId}`
+        connection.query(sql, function(err, result) {
+          if (err) {
+            return connection.rollback(function() {
+              callback(err, null)
+            })
+          }
+          result.map((Payload) => {
+            const {ProductId} = Payload;
+            let sql = `UPDATE products SET WithSeller = ${1}, Status = 'in stock' WHERE ProductId = ${ProductId}`
+            connection.query(sql, function(err, result) {
+              if (err) {
+                return connection.rollback(function() {
+                  callback(err, null)
+                })
+              }
+            })
+          })
+          connection.commit(function(err) {
+            if (err) {
+              return connection.rollback(function() {
+                callback(err, null)
+              })
+            } else {
+              callback(null, {
+                success: true,
+              })
+            }
+          })
+        })
+      })
+    })
   })
 }
 
@@ -279,6 +426,9 @@ module.exports = {
   getCurrentSellerInfoById,
   demandCylinders,
   addBalanceToSellerAccount,
+  getSellerConfirmationOrders,
+  confirmSellerOrder,
+  cancelSellerOrder,
   getAllSellerTransaction,
   getProductCategories,
   createSellerOrder,

@@ -45,6 +45,11 @@ const Sidebar = ({sidebarToggle}) => {
               </Link>
             </li>
             <li>
+              <Link to='/seller/confirm-orders' className='decoration-none primary-text'>
+              <span className='mr-2 f-size-1'><FontAwesomeIcon icon="fa-solid fa-chart-line" /></span>Confirm Orders
+              </Link>
+            </li>
+            <li>
               <Link to='/seller/return-orders' className='decoration-none primary-text'>
               <span className='mr-2 f-size-1'><FontAwesomeIcon icon="fa-solid fa-chart-line" /></span>Return Orders
               </Link>

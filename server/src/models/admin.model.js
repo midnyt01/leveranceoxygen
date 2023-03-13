@@ -112,7 +112,7 @@ async function getAllSellers(callback) {
 }
 
 async function getSellerById(id, callback) {
-  let sql = `SELECT FirmName, FirstName, LastName, PhoneNumber, Address, City, State, Balance, Count, Demand FROM sellers WHERE SellerId = ${id}`;
+  let sql = `SELECT FirmName, FirstName, LastName, PhoneNumber, Address, City, State, Balance, Count, Small, Medium, Large FROM sellers WHERE SellerId = ${id}`;
   db.query(sql, function (err, result) {
     if (err) {
       callback(err, null);
@@ -138,7 +138,8 @@ async function deleteSellerById(Id, callback) {
 //Seller orders
 
 async function createSellerOrder(sellerId, orderDetails, callback) {
-  const { Cylinders, Amount } = orderDetails;
+  const { Cylinders, Amount, Quantity } = orderDetails;
+  const { Small, Medium, Large } = Quantity;
   const date = new Date();
   const CreatedAt = date.toDateString();
   db.getConnection(function (err, connection) {
@@ -152,7 +153,7 @@ async function createSellerOrder(sellerId, orderDetails, callback) {
       let sql = `INSERT INTO seller_orders SET ?`;
       connection.query(
         sql,
-        { sellerId, Amount, CreatedAt, Status: "Booked", DeliveredAt: 0 },
+        { sellerId, Amount, CreatedAt, Status: "Pending", Small, Medium, Large },
         function (err, result) {
           if (err) {
             return connection.rollback(function () {
@@ -202,58 +203,15 @@ async function createSellerOrder(sellerId, orderDetails, callback) {
                 );
               });
             }
-            let sql = `SELECT Balance, Count, Demand FROM sellers WHERE SellerId = ${sellerId}`;
-            connection.query(sql, function (err4, result4) {
-              if (err4) {
+            connection.commit(function (err2) {
+              if (err2) {
                 return connection.rollback(function () {
-                  callback(err4, null);
+                  callback(err2, null);
                 });
               } else {
-                let Balance = result4[0].Balance;
-                let NetBalance = Balance - Amount;
-                let NewDemand = result4[0].Demand - Cylinders.length;
-                let NewCount = Number(result4[0].Count) + Cylinders.length;
-                let sql = `UPDATE sellers SET Balance = ${NetBalance}, Count = ${NewCount}, Demand = ${NewDemand} WHERE SellerId = ${sellerId}`;
-                connection.query(sql, function (err5, result5) {
-                  if (err5) {
-                    return connection.rollback(function () {
-                      callback(err5, null);
-                    });
-                  } else {
-                    let sql = `INSERT INTO seller_transactions SET ?`;
-                    connection.query(
-                      sql,
-                      {
-                        SellerId: sellerId,
-                        Process: 0,
-                        Amount,
-                        OrderId,
-                        TransactionDate: CreatedAt,
-                      },
-                      function (err6, result6) {
-                        if (err6) {
-                          return connection.rollback(function () {
-                            callback(err6, null);
-                          });
-                        } else {
-                          let TransactionId = result6.insertId;
-                          connection.commit(function (err2) {
-                            if (err2) {
-                              return connection.rollback(function () {
-                                callback(err2, null);
-                              });
-                            } else {
-                              callback(null, {
-                                success: true,
-                                OrderId,
-                                TransactionId,
-                              });
-                            }
-                          });
-                        }
-                      }
-                    );
-                  }
+                callback(null, {
+                  success: true,
+                  OrderId,
                 });
               }
             });
@@ -264,165 +222,169 @@ async function createSellerOrder(sellerId, orderDetails, callback) {
   });
 }
 
-async function createSellerDemandOrder(DemandId, orderDetails, callback) {
-  const { Cylinders, Amount } = orderDetails;
-  const date = new Date();
-  const CreatedAt = date.toDateString();
-  db.getConnection(function (err, connection) {
-    if (err) {
-      callback(err, null);
-    }
-    connection.beginTransaction(async function (err) {
-      if (err) {
-        callback(err, null);
-      }
-      //add demand code and select selllerid and update is completed
-      let sql = `SELECT SellerId FROM demand_orders WHERE DemandId = ${DemandId}`;
-      connection.query(sql, function (err, result) {
-        if (err) {
-          callback(err, null);
-        } else {
-          let sellerId = result[0].SellerId;
-          let sql = `UPDATE demand_orders SET IsCreated = ${1} WHERE DemandId = ${DemandId}`;
-          connection.query(sql, function (err, result) {
-            if (err) {
-              return connection.rollback(function () {
-                callback(err, null);
-              });
-            } else {
-              let sql = `INSERT INTO seller_orders SET ?`;
-              connection.query(
-                sql,
-                {
-                  sellerId,
-                  Amount,
-                  CreatedAt,
-                  Status: "Booked",
-                },
-                function (err, result) {
-                  if (err) {
-                    return connection.rollback(function () {
-                      callback(err, null);
-                    });
-                  } else {
-                    let OrderId = result.insertId;
-                    try {
-                      Cylinders.map((cylinder) => {
-                        let sql = `INSERT INTO seller_order_payload SET ?`;
-                        connection.query(
-                          sql,
-                          { ProductId: cylinder, OrderId },
-                          function (err1, result1) {
-                            if (err1) {
-                              return connection.rollback(function () {
-                                callback(err1, null);
-                              });
-                            }
-                          }
-                        );
-                      });
-                    } catch (error) {
-                      return connection.rollback(function () {
-                        callback(
-                          "cannot insert order payload, Cylinders.map is not an function",
-                          null
-                        );
-                      });
-                    }
-                    try {
-                      Cylinders.map((cylinder) => {
-                        let sql = `UPDATE products SET WithSeller = ${sellerId}, Status = 'in transit' WHERE ProductId = ${cylinder}`;
-                        connection.query(sql, function (err3, result3) {
-                          if (err3) {
-                            return connection.rollback(function () {
-                              callback(err3, null);
-                            });
-                          }
-                        });
-                      });
-                    } catch (error) {
-                      return connection.rollback(function () {
-                        callback(
-                          "cannot update product status, Cylinders.map is not an function",
-                          null
-                        );
-                      });
-                    }
-                    let sql = `SELECT Balance, Count, Demand FROM sellers WHERE SellerId = ${sellerId}`;
-                    connection.query(sql, function (err4, result4) {
-                      if (err4) {
-                        return connection.rollback(function () {
-                          callback(err4, null);
-                        });
-                      } else {
-                        let Balance = result4[0].Balance;
-                        let NetBalance = Balance - Amount;
-                        let NewDemand = result4[0].Demand - Cylinders.length;
-                        let NewCount =
-                          Number(result4[0].Count) + Cylinders.length;
-                        let sql = `UPDATE sellers SET Balance = ${NetBalance}, Count = ${NewCount}, Demand = ${NewDemand} WHERE SellerId = ${sellerId}`;
-                        connection.query(sql, function (err5, result5) {
-                          if (err5) {
-                            return connection.rollback(function () {
-                              callback(err5, null);
-                            });
-                          } else {
-                            let sql = `INSERT INTO seller_transactions SET ?`;
-                            connection.query(
-                              sql,
-                              {
-                                SellerId: sellerId,
-                                Process: 0,
-                                Amount,
-                                OrderId,
-                                TransactionDate: CreatedAt,
-                              },
-                              function (err6, result6) {
-                                if (err6) {
-                                  return connection.rollback(function () {
-                                    callback(err6, null);
-                                  });
-                                } else {
-                                  let TransactionId = result6.insertId;
-                                  connection.commit(function (err2) {
-                                    if (err2) {
-                                      return connection.rollback(function () {
-                                        callback(err2, null);
-                                      });
-                                    } else {
-                                      callback(null, {
-                                        success: true,
-                                        OrderId,
-                                        TransactionId,
-                                        sellerId,
-                                      });
-                                    }
-                                  });
-                                }
-                              }
-                            );
-                          }
-                        });
-                      }
-                    });
-                  }
-                }
-              );
-            }
-          });
-        }
-      });
-    });
-  });
-}
+// async function createSellerDemandOrder(DemandId, orderDetails, callback) {
+//   const { Cylinders, Amount, Quantity } = orderDetails;
+//   const {Small, Medium, Large} = Quantity;
+//   const date = new Date();
+//   const CreatedAt = date.toDateString();
+//   db.getConnection(function (err, connection) {
+//     if (err) {
+//       callback(err, null);
+//     }
+//     connection.beginTransaction(async function (err) {
+//       if (err) {
+//         callback(err, null);
+//       }
+//       //add demand code and select selllerid and update is completed
+//       let sql = `SELECT SellerId FROM demand_orders WHERE DemandId = ${DemandId}`;
+//       connection.query(sql, function (err, result) {
+//         if (err) {
+//           callback(err, null);
+//         } else {
+//           let sellerId = result[0].SellerId;
+//           let sql = `UPDATE demand_orders SET IsCreated = ${1} WHERE DemandId = ${DemandId}`;
+//           connection.query(sql, function (err, result) {
+//             if (err) {
+//               return connection.rollback(function () {
+//                 callback(err, null);
+//               });
+//             } else {
+//               let sql = `INSERT INTO seller_orders SET ?`;
+//               connection.query(
+//                 sql,
+//                 {
+//                   sellerId,
+//                   Amount,
+//                   CreatedAt,
+//                   Status: "Booked",
+//                 },
+//                 function (err, result) {
+//                   if (err) {
+//                     return connection.rollback(function () {
+//                       callback(err, null);
+//                     });
+//                   } else {
+//                     let OrderId = result.insertId;
+//                     try {
+//                       Cylinders.map((cylinder) => {
+//                         let sql = `INSERT INTO seller_order_payload SET ?`;
+//                         connection.query(
+//                           sql,
+//                           { ProductId: cylinder, OrderId },
+//                           function (err1, result1) {
+//                             if (err1) {
+//                               return connection.rollback(function () {
+//                                 callback(err1, null);
+//                               });
+//                             }
+//                           }
+//                         );
+//                       });
+//                     } catch (error) {
+//                       return connection.rollback(function () {
+//                         callback(
+//                           "cannot insert order payload, Cylinders.map is not an function",
+//                           null
+//                         );
+//                       });
+//                     }
+//                     //do after order is confirmed
+//                     try {
+//                       Cylinders.map((cylinder) => {
+//                         let sql = `UPDATE products SET WithSeller = ${sellerId}, Status = 'in transit' WHERE ProductId = ${cylinder}`;
+//                         connection.query(sql, function (err3, result3) {
+//                           if (err3) {
+//                             return connection.rollback(function () {
+//                               callback(err3, null);
+//                             });
+//                           }
+//                         });
+//                       });
+//                     } catch (error) {
+//                       return connection.rollback(function () {
+//                         callback(
+//                           "cannot update product status, Cylinders.map is not an function",
+//                           null
+//                         );
+//                       });
+//                     }
+//                     let sql = `SELECT Balance, Count, Small, Medium, Large FROM sellers WHERE SellerId = ${sellerId}`;
+//                     connection.query(sql, function (err4, result4) {
+//                       if (err4) {
+//                         return connection.rollback(function () {
+//                           callback(err4, null);
+//                         });
+//                       } else {
+//                         let Balance = result4[0].Balance;
+//                         let NetBalance = Balance - Amount;
+//                         let NewSmall = result4[0].Small - Number(Small);
+//                         let NewMedium = result4[0].Medium - Number(Medium);
+//                         let NewLarge = result4[0].Large - Number(Large);
+//                         let NewCount =
+//                           Number(result4[0].Count) + Cylinders.length;
+//                         let sql = `UPDATE sellers SET Balance = ${NetBalance}, Count = ${NewCount}, Small = ${NewSmall}, Medium = ${NewMedium}, Large = ${NewLarge} WHERE SellerId = ${sellerId}`;
+//                         connection.query(sql, function (err5, result5) {
+//                           if (err5) {
+//                             return connection.rollback(function () {
+//                               callback(err5, null);
+//                             });
+//                           } else {
+//                             let sql = `INSERT INTO seller_transactions SET ?`;
+//                             connection.query(
+//                               sql,
+//                               {
+//                                 SellerId: sellerId,
+//                                 Process: 0,
+//                                 Amount,
+//                                 OrderId,
+//                                 TransactionDate: CreatedAt,
+//                               },
+//                               function (err6, result6) {
+//                                 if (err6) {
+//                                   return connection.rollback(function () {
+//                                     callback(err6, null);
+//                                   });
+//                                 } else {
+//                                   let TransactionId = result6.insertId;
+//                                   connection.commit(function (err2) {
+//                                     if (err2) {
+//                                       return connection.rollback(function () {
+//                                         callback(err2, null);
+//                                       });
+//                                     } else {
+//                                       callback(null, {
+//                                         success: true,
+//                                         OrderId,
+//                                         TransactionId,
+//                                         sellerId,
+//                                       });
+//                                     }
+//                                   });
+//                                 }
+//                               }
+//                             );
+//                           }
+//                         });
+//                       }
+//                     });
+//                   }
+//                 }
+//               );
+//             }
+//           });
+//         }
+//       });
+//     });
+//   });
+// }
 
 async function updateSellerDemandOrder(DemandId, callback) {
-  let sql = `UPDATE demand_orders SET IdCreated = 1 WHERE DemandId = ${DemandId}`;
+  let sql = `UPDATE demand_orders SET IsCreated = ${1} WHERE DemandId = ${DemandId}`;
   db.query(sql, function (err, result) {
     if (err) {
       callback(err, null);
     } else {
-      callback({
+      callback(null, {
         success: true,
       });
     }
@@ -431,7 +393,7 @@ async function updateSellerDemandOrder(DemandId, callback) {
 
 async function getAllSellersOrders(callback) {
   let sql = `SELECT * FROM seller_orders 
-  JOIN seller_order_payload ON seller_orders.OrderId = seller_order_payload.OrderId`;
+  JOIN seller_order_payload ON seller_orders.OrderId = seller_order_payload.OrderId WHERE IsConfirm = ${1}`;
   db.query(sql, function (err, result) {
     if (err) {
       callback(err, null);
@@ -673,7 +635,7 @@ async function sellerReturnOrderReceived(
 }
 
 async function getAllSellerDemandOrders(callback) {
-  let sql = `SELECT demand_orders.DemandId, demand_orders.SellerId, demand_orders.Quantity, sellers.FirmName, demand_orders.IsCreated FROM demand_orders  
+  let sql = `SELECT demand_orders.DemandId, demand_orders.SellerId, demand_orders.Small, demand_orders.Medium, demand_orders.Large, sellers.FirmName, demand_orders.IsCreated FROM demand_orders  
   JOIN sellers ON demand_orders.SellerId = sellers.SellerId
   WHERE IsCreated = ${0}
   ORDER BY DemandId DESC`;
@@ -795,7 +757,7 @@ module.exports = {
   getSellerById,
   deleteSellerById,
   createSellerOrder,
-  createSellerDemandOrder,
+  // createSellerDemandOrder,
   updateSellerDemandOrder,
   sellerOrderDelivered,
   updateSellerReturnOrderStatus,

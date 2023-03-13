@@ -1,8 +1,8 @@
 .return-order-status-container {
     position: absolute;
     background-color: gray;
-    width: 250px;
-    height: 250px;
+    width: 270px;
+    height: 360px;
     right: 60px;
     top: 100px;
     display: flex;
@@ -10,6 +10,18 @@
     z-index: 10;
     box-sizing: border-box;
     padding: 10px;
+}
+
+.return-order-status-wrapper {
+    height: 200px;
+    overflow: scroll;
+}
+.return-order-status-button {
+    margin-top: 15px;
+    border: none;
+    font-size: 17px;
+    padding: 7px 14px;
+    border-radius: 5px;
 }
 
 .date-wrapper {

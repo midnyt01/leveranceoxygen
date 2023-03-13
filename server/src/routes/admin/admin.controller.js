@@ -96,9 +96,9 @@ async function httpCreateSellerOrder (req, res) {
   })
 }
 
-async function httpCreateSellerDemandOrder (req, res) {
+async function httpUpdateSellerDemandOrder (req, res) {
   let DemandId = req.params.id;
-  await createSellerDemandOrder(DemandId, req.body, async function(err, data) {
+  await updateSellerDemandOrder(DemandId, function(err, data) {
     if (err) {
       res.status(400).json(err)
     } else {
@@ -279,7 +279,7 @@ module.exports = {
   httpGetSellerById,
   httpDeleteSellerById,
   httpCreateSellerOrder,
-  httpCreateSellerDemandOrder,
+  httpUpdateSellerDemandOrder,
   httpGetAllSellerDemandOrders,
   httpAddNewProduct,
   httpGetAllProducts,

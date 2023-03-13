@@ -1,0 +1,25 @@
+.create-seller-order-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    width: 100vw;
+    height: 100vh;
+    background-color: white;
+    margin-bottom: 20px;
+}
+.cylinders-category-container {
+    margin: 0px;
+    display: flex;
+    justify-content: space-between;
+}
+.cylinders-category-wrapper {
+    height: 120px;
+    overflow: scroll;
+}
+
+.create-seller-order-amount{
+    margin-top: 10px;
+    font-size: 17px;
+    padding: 2px 5px;
+}

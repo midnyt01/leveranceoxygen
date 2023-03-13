@@ -10,6 +10,9 @@ const {
   getAllSellerTransaction,
   createSellerReturnOrder,
   getSellerReturnOrder,
+  getSellerConfirmationOrders,
+  confirmSellerOrder,
+  cancelSellerOrder,
 } = require("../../models/seller.model");
 var jwt = require("jsonwebtoken");
 const { SortSellerOrders } = require("../../helper-function/helper-functions");
@@ -40,7 +43,7 @@ async function httpGetCurrentSellerInfoById(req, res) {
 
 async function httpDemandCylinders (req, res) {
   let sellerID = req.seller.Id
-  await demandCylinders(sellerID, req.body.cylinders, function(err, data) {
+  await demandCylinders(sellerID, req.body, function(err, data) {
     if (err) {
       res.status(400).json(err)
     } else {
@@ -52,6 +55,40 @@ async function httpDemandCylinders (req, res) {
 async function httpAddBalance (req, res) {
   let sellerID = req.seller.Id
   await addBalanceToSellerAccount(sellerID, req.body, function(err, data) {
+    if (err) {
+      res.status(400).json(err)
+    } else {
+      res.status(200).json(data)
+    }
+  })
+}
+
+async function httpGetAllSellerConfirmationOrders (req, res) {
+  let sellerID = req.seller.Id;
+  await getSellerConfirmationOrders(sellerID, function(err, data) {
+    if (err) {
+      res.status(400).json(err)
+    } else {
+      res.status(200).json(data)
+    }
+  })
+}
+
+async function httpConfirmSellerOrder (req, res) {
+  let sellerID = req.seller.Id;
+  let OrderId = req.params.id;
+  await confirmSellerOrder(sellerID, req.body, OrderId, function(err, data) {
+    if (err) {
+      res.status(400).json(err)
+    } else {
+      res.status(200).json(data)
+    }
+  })
+}
+
+async function httpCancleSellerOrder (req, res) {
+  let OrderId = req.params.id;
+  await cancelSellerOrder(OrderId, function(err, data) {
     if (err) {
       res.status(400).json(err)
     } else {
@@ -158,6 +195,9 @@ module.exports = {
   httpGetCurrentSellerInfoById,
   httpDemandCylinders,
   httpAddBalance,
+  httpGetAllSellerConfirmationOrders,
+  httpConfirmSellerOrder,
+  httpCancleSellerOrder,
   httpGetAllSellerTransactions,
   httpGetProductCategories,
   httpCreateSellerOrder,

@@ -149,6 +149,7 @@ const AdminSellerReturnOrderCard = ({ order }) => {
                   {orderStatus === "Received" && (
                     <div>
                       <h3>Select Cylinders</h3>
+                      <div className="return-order-status-wrapper">
                       {(withSellerProducts != null) && withSellerProducts.map((cylinder) => {
                         const { ProductId, MFID } = cylinder;
                         return (
@@ -164,9 +165,10 @@ const AdminSellerReturnOrderCard = ({ order }) => {
                           </div>
                         );
                       })}
+                      </div>
                     </div>
                   )}
-                  <button onClick={handleReturnCylinders}>Confirm </button>
+                  <button className="return-order-status-button" onClick={handleReturnCylinders}>Confirm </button>
                 </div>
               )}
             </div>

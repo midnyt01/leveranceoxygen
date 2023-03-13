@@ -2,11 +2,11 @@ const mysql = require('mysql')
 
 
 const db = mysql.createPool({
-    host : '217.21.95.103',
-    user:'u391245239_lev_admin',
-    password:'2ihxda3Y.nSj8WG',
-    database: 'u391245239_leverance_db',
-    connectionLimit: 10
+    host : 'localhost',
+    user:'root',
+    password:'',
+    database: 'leverance_demo_db',
+    connectionLimit: 200 
 })
 
 

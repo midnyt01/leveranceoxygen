@@ -4,17 +4,79 @@ import { useState } from "react";
 import { createContext } from "react";
 import {
   httpAddSellerBalance,
+  httpCancleSellerOrder,
+  httpConfirmSellerOrder,
   httpCreateSellerOrder,
   httpCreateSellerReturnOrder,
   httpGetAllSellerOrders,
   httpGetAllSellerTransactions,
   httpGetCurrentSellerInfo,
+  httpGetSellerConfirmationOrders,
   httpGetSellerReturnOrders,
 } from "../../utils/nodejs/seller";
 import { SellerAuthContext } from "./seller-auth-context";
 import { makeid, sellerSocket } from "../socket.io";
 import { SellerNotificationsContext } from "./seller-notifications.context";
 
+
+const confirmAndUpdateSellerOrder = async (orderToConfirm, sellerConfirmationOrders, sellerTransactions, sellerOrders, sellerInfo) => {
+  const {OrderId, Amount, Small, Medium, Large, CreatedAt} = orderToConfirm;
+  orderToConfirm.SellerId = sellerInfo.SellerId;
+  let Quantity = {
+    Small,
+    Medium,
+    Large
+  }
+  let newDate = new Date()
+  let transaction = {
+    Amount,
+    Method: "",
+    OrderId,
+    Process: 0,
+    SellerId: sellerInfo.SellerId,
+    TransactionDate: newDate.toDateString()
+  }
+  let response = await httpConfirmSellerOrder({Amount, Quantity, CreatedAt}, OrderId);
+  if (response.success) {
+    let newOrderArray = sellerConfirmationOrders.filter((order) => {
+      return order.OrderId != OrderId;
+    })
+    //seller info update
+    sellerInfo.Balance = Number(sellerInfo.Balance) - Number(Amount);
+    sellerInfo.Count = Number(sellerInfo.Count) + Number(Small) + Number(Medium) + Number(Large);
+    sellerInfo.Small = Number(sellerInfo.Small) - Number(Small)
+    sellerInfo.Medium = Number(sellerInfo.Medium) - Number(Medium)
+    sellerInfo.Large = Number(sellerInfo.Large) - Number(Large);
+
+    //seller order update
+    for (let i = 0; i < sellerOrders.length; i++) {
+      if (sellerOrders[i].OrderId == OrderId) {
+        sellerOrders[i].Status = 'Booked';
+      }
+    }
+    //seller transaction update
+    transaction.TransactionId = response.TransactionId;
+    sellerSocket.emit("confirm_create_seller_order", {orderToConfirm, transaction});
+
+    return [[...newOrderArray], [transaction, ...sellerTransactions], [...sellerOrders], {...sellerInfo}];
+  }
+}
+
+const CancelAndUpdateSellerOrder = async (orderToCancel, sellerConfirmationOrders, sellerOrders) => {
+  const {OrderId} = orderToCancel;
+  let response = await httpCancleSellerOrder(OrderId);
+  if (response.success) {
+    let newOrderArray = sellerConfirmationOrders.filter((order) => {
+      return order.OrderId != OrderId;
+    })
+    for (let i = 0; i < sellerOrders.length; i++) {
+      if (sellerOrders[i].OrderId == OrderId) {
+        sellerOrders[i].Status = 'Cancelled';
+      }
+    }
+    return [[...newOrderArray], [...sellerOrders]]
+  }
+}
 
 const addSellerOrder = async (orderToAdd, sellerOrders) => {
   const response = await httpCreateSellerOrder(orderToAdd);
@@ -28,12 +90,12 @@ const addSellerOrder = async (orderToAdd, sellerOrders) => {
   }
 };
 
-const addSellerOrderToList = async (orderToAdd, sellerReturnOrders) => {
+const addSellerOrderToList = async (orderToAdd, sellerReturnOrders, Refill) => {
   const response = await httpCreateSellerReturnOrder()
   if (response.success) {
     orderToAdd.ReturnOrderId = response.ReturnOrderId;
     let SellerToken = localStorage.getItem('seller')
-    sellerSocket.emit("add_seller_return_order", {SellerToken, orderToAdd})
+    sellerSocket.emit("add_seller_return_order", {SellerToken, orderToAdd, Refill})
     return [orderToAdd, ...sellerReturnOrders]
   } else {
     console.log('error in creating seller return order')
@@ -64,6 +126,9 @@ export const SellerOrdersContext = createContext({
   sellerReturnOrders: null,
   addSellerBalance: () => {},
   addToSellerReturnOrder: () => {},
+  sellerConfirmationOrders: [],
+  confirmSellerOrder: () => {},
+  cancelSellerOrder: () => {},
 });
 
 export const SellerOrdersProvider = ({ children }) => {
@@ -74,8 +139,11 @@ export const SellerOrdersProvider = ({ children }) => {
   const [sellerOrders, setSellerOrders] = useState([]);
   const [sellerTransactions, setSellerTransactions] = useState([]);
   const [sellerReturnOrders, setSellerReturnOrders] = useState([]);
+  const [sellerConfirmationOrders ,setSellerConfirmaionOrders] = useState([]);
 
   const {sellerInfo, setSellerInfo} = useContext(SellerAuthContext)
+
+  console.log({sellerInfo});
 
   useEffect(() => {
     const getSellerOrdersArray = async () => {
@@ -113,12 +181,26 @@ export const SellerOrdersProvider = ({ children }) => {
           let sellerReturnOrderArray = await httpGetSellerReturnOrders();
           setSellerReturnOrders(sellerReturnOrderArray);
         } catch (error) {
-          error("error getting seller return orders", error);
+          console.error("error getting seller return orders", error);
         }
       }
     };
     getSellerReturnOrderArray()
   }, [isSellerLogin]);
+
+  useEffect(() => {
+    const getsellerConfirmationOrderArray = async () => {
+      if (isSellerLogin) {
+        try {
+          let sellerConfirmationOrderArray = await httpGetSellerConfirmationOrders();
+          setSellerConfirmaionOrders(sellerConfirmationOrderArray);
+        } catch (error) {
+          console.error('error in getting seller confirmation orders', error)
+        }
+      }
+    }
+    getsellerConfirmationOrderArray();
+  }, [isSellerLogin])
 
   //socket code
 
@@ -140,13 +222,13 @@ export const SellerOrdersProvider = ({ children }) => {
       sellerSocket.on("update_seller_orders", async (data) => {
         if (isSellerLogin) {
           console.log('receiving created seller order')
-          if (Number(data.currentSeller) == sellerInfo.SellerId ) {
-            const sellerTransactionArray = await httpGetAllSellerTransactions();
-            setSellerTransactions(sellerTransactionArray);
+          if (Number(data.SellerId) == sellerInfo.SellerId ) {
             const sellerOrdersArray = await httpGetAllSellerOrders();
             setSellerOrders(sellerOrdersArray);
-            let message = 'Leverance Oxygen has created your order';
-            let messageLink = '/seller'
+            const sellerConfirmOrdersArray = await httpGetSellerConfirmationOrders();
+            setSellerConfirmaionOrders(sellerConfirmOrdersArray);
+            let message = 'Leverance Oxygen has created your order click here to see';
+            let messageLink = '/seller/confirm-orders'
             let messageId = makeid(5)
             setSellerNotifications([{messageId, message, messageLink}, ...sellerNotifications])
           }
@@ -176,7 +258,7 @@ useEffect(() => {
   })
   }
 
-  return () => sellerSocket.off("update_seller_orders")
+  return () => sellerSocket.off("update_seller_demand_orders")
 }, [sellerSocket, sellerInfo, sellerNotifications])
 
 useEffect(() => {
@@ -285,12 +367,33 @@ useEffect(() => {
     setSellerOrders(newSellerOrdersArray);
   };
 
-  const addToSellerReturnOrder = async (orderDetails) => {    
+  const addToSellerReturnOrder = async (orderDetails, Refill) => {    
     let date = new Date()
     let CreatedAt = date.toDateString()
     let orderToAdd = {CreatedAt, ...orderDetails}
-    let newReturnOrdersArray = await addSellerOrderToList(orderToAdd, sellerReturnOrders);
+    let newReturnOrdersArray = await addSellerOrderToList(orderToAdd, sellerReturnOrders, Refill);
     setSellerReturnOrders(newReturnOrdersArray)
+  }
+
+  const confirmSellerOrder = async (orderToConfirm) => {
+    try {
+      let newSellerInfoArray = await confirmAndUpdateSellerOrder(orderToConfirm, sellerConfirmationOrders, sellerTransactions, sellerOrders, sellerInfo);
+      setSellerConfirmaionOrders(newSellerInfoArray[0]);
+      setSellerTransactions(newSellerInfoArray[1]);
+      setSellerOrders(newSellerInfoArray[2]);
+      setSellerInfo(newSellerInfoArray[3]);
+
+    } catch (error) {
+      console.log('error in confirming order', error)
+    }
+  }
+
+  const cancelSellerOrder = async (orderToCancel) => {
+    let newConfirmOrderArray = await CancelAndUpdateSellerOrder(orderToCancel, sellerConfirmationOrders, sellerOrders);
+    setSellerConfirmaionOrders(newConfirmOrderArray[0]);
+    setSellerOrders(newConfirmOrderArray[1]);
+    orderToCancel.SellerId = sellerInfo.SellerId;
+    sellerSocket.emit("cancel_create_seller_order", orderToCancel)
   }
 
   const value = {
@@ -302,6 +405,9 @@ useEffect(() => {
     sellerReturnOrders,
     addSellerBalance,
     addToSellerReturnOrder,
+    sellerConfirmationOrders,
+    confirmSellerOrder,
+    cancelSellerOrder,
   };
 
   return (

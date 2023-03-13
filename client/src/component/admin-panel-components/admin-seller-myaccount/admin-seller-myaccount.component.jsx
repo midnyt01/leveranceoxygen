@@ -7,6 +7,10 @@ import { useEffect } from "react";
 import { httpGetSellerById } from "../../../utils/nodejs/admin";
 import { SellersContext } from "../../../context/admin/sellers.context";
 
+import './admin-seller-myaccount.style.css';
+import CreateSellerOrderFromDemandById from "../../../routes/admin/admin-create-seller-order-demand/admin-create-seller-order-demand.component";
+import CreateSellerOrder from "../../../routes/admin/seller-create-order/create-seller-order";
+
 //change select option when changing order and transaction
 
 const AdminSellerAccount = () => {
@@ -19,10 +23,8 @@ const AdminSellerAccount = () => {
     changeCurrentSeller(SellerId)
   }, [SellerId])
 
-  
 
   // const { sellerInfo, AddDemandCylinders } = useContext(SellerAuthContext);
-  const { AddDemandCylinders } = useContext(SellerAuthContext);
 
   //getting seller orders and transactions
 
@@ -32,14 +34,10 @@ const AdminSellerAccount = () => {
   const [filteredTransactions, setFilteredTransactions] = useState(null);
   const [orderFilter, setOrderFilter] = useState("All");
   const [transactionFilter, setTransactionFilter] = useState("All");
+  const [isOrderCardOpen, setIsOrderCardOpen] = useState(false);
 
-  const [openDemandCard, setOpenDemandCard] = useState(false)
 
-  const [quantity, setQuantity] = useState("")
 
-  const [isDemandConfirm, setIsDemandConfirm] = useState(true)
-
-  const [demandStatus, setDemandStatus] = useState({success: "none", quantity: 0})
 
   useEffect(() => {
     setFilteredOrders(currentSellerOrders);
@@ -50,24 +48,6 @@ const AdminSellerAccount = () => {
     setFilteredTransactions(currentSellerTransactions);
   }, [currentSellerTransactions]);
 
-  useEffect(() => {
-    if (quantity !== "" && quantity > 0) {
-      setIsDemandConfirm(false)
-    }
-  }, [quantity])
-
-
-
-  const handleQuantityChange = (e) => {
-    const value = e.target.value;
-    setQuantity(value)
-  }
-
-
-
-  const toggleOpenDemandCard = () => {
-    setOpenDemandCard(!openDemandCard)
-  }
 
   const toggleToTransactions = () => {
     setShowList("Transaction");
@@ -75,6 +55,9 @@ const AdminSellerAccount = () => {
   const toggleToOrders = () => {
     setShowList("Order");
   };
+  const toggleOrderCard = () => {
+    setIsOrderCardOpen(!isOrderCardOpen);
+  }
 
   const handleFilterForOrders = (e) => {
     setOrderFilter(e.target.value);
@@ -112,29 +95,6 @@ const AdminSellerAccount = () => {
   }, [transactionFilter]);
 
 
-  const handleAddDemand = async (e) => {
-    let showQuantity = quantity
-    e.preventDefault();
-    AddDemandCylinders(quantity);
-    setQuantity("");
-    setDemandStatus({success: true, quantity: showQuantity});
-    setTimeout(() => {
-      setDemandStatus({success: "none", quantity: 0});
-      setOpenDemandCard(false);
-    }, 1200);
-  }
-
-  const decreaseDemandCount = () => {
-    if (quantity !== "" && quantity > 0) {
-      setQuantity(Number(quantity) - 1)
-    }
-  }
-
-  const increaseDemandCount = () => {
-    if (quantity !== "" && quantity >= 0) {
-      setQuantity(Number(quantity) + 1)
-    }
-  }
   if (currentSellerInfo !== null) {
     const {
       FirmName,
@@ -146,15 +106,14 @@ const AdminSellerAccount = () => {
       State,
       Balance,
       Count,
-      Demand,
+      Small,
+      Medium,
+      Large
     } = currentSellerInfo;
 
     return (
-      <div>
-        <div
-          className="container-fluid m-auto"
-          style={{ position: "relative" }}
-        >
+      <div style={{ position: "relative" }}>
+        <div className="container-fluid m-auto">
           <h1 className="mt-3 mb-1">{FirmName}</h1>
           <p className="mt-1 mb-1">{`${FirstName} ${LastName}`}</p>
           <p className="mt-1 mb-1">{PhoneNumber}</p>
@@ -168,54 +127,23 @@ const AdminSellerAccount = () => {
               <p className="balance-item">Count</p>
               <p className="balance-number cta-link-2">{Count}</p>
             </div>
-            <div className="balance-info" style={{ flex: "3" }}>
-              <p className="balance-item">Demand</p>
-              <p className="balance-number dngr">{Demand}</p>
-            </div>
           </div>
+            <div className="seller-demand-info-container">
+              <p className="seller-demand-info-title">Demand</p>
+              <p className="seller-demand-info-item">Small: <span className="dngr">{Small}</span></p>
+              <p className="seller-demand-info-item">Medium: <span className="dngr">{Medium}</span></p>
+              <p className="seller-demand-info-item">Large: <span className="dngr">{Large}</span></p>
+            </div>
           <div className="mt-3 d-flex jc-space-btw">
-            <Link to="/admin/create-seller-order" className="btn cta-btn-bg light-text f-weight-800"
-            onClick={toggleOpenDemandCard}>
+            <div className="btn cta-btn-bg light-text"
+            onClick={toggleOrderCard}>
               Create Seller Order
-            </Link>
-          </div>
-          {openDemandCard && (
-            <div className="add-seller-demand-wrapper">
-              <form className="add-seller-demand-form">
-                <div className="add-seller-demand-quantity-wrapper">
-                <div className="change-seller-demand" onClick={decreaseDemandCount}>-</div>
-                <input
-                  placeholder="Quantity"
-                  className="add-seller-demand-quantity"
-                  value={quantity}
-                  onChange={handleQuantityChange}
-                />
-                <div className="change-seller-demand" onClick={increaseDemandCount}>+</div>
-                </div>
-                {demandStatus.success === true && (
-                  <div
-                    className="success"
-                    style={{ fontSize: "15px", marginBottom: "10px" }}
-                  >
-                    Demand of {demandStatus.quantity} cylinders added successfully
-                  </div>
-                )}
-                <button
-                  className="add-seller-demand-confirm"
-                  disabled={isDemandConfirm}
-                  onClick={handleAddDemand}
-                >
-                  Confirm
-                </button>
-                <span
-                  className="add-seller-demand-close"
-                  onClick={toggleOpenDemandCard}
-                >
-                  X
-                </span>
-              </form>
             </div>
-          )}
+          </div>
+          {
+            isOrderCardOpen && <CreateSellerOrder SellerId={SellerId} Small={Small} Medium={Medium} Large={Large} isOrderCardOpen={isOrderCardOpen} setIsOrderCardOpen={setIsOrderCardOpen}/>
+          }
+
           <div className="order-transaction-tab-wrapper mt-3 mb-3">
             <hr className="type-selector-top" />
             <div className="type-selector-wrapper d-flex jc-space-btw">

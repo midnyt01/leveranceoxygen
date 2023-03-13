@@ -7,4 +7,5 @@
     box-sizing: border-box;
     padding: 20px 0;
     gap: 20px;
+    position: relative;
   }

@@ -39,6 +39,7 @@ import AdminSellerReturnOrders from "./routes/admin/admin-seller-return-orders/a
 import DemandOrders from "./routes/admin/admin-demand-orders/admin-demand-orders.component";
 import CreateSellerOrderFromDemand from "./routes/admin/admin-create-seller-order-demand/admin-create-seller-order-demand.component";
 import CreateSellerDemandOrder from "./routes/admin/admin-create-seller-demand-order/admin-create-seller-demand.component";
+import SellerConfirmationOrders from "./routes/seller/seller-confirmation-orders/seller-confirmation-ordres.component";
 
 library.add(fas);
 
@@ -211,6 +212,14 @@ function App() {
           <SellerCreateOrder />
         </SellerProtectedRoute>
       } /> */}
+      <Route
+        path="/seller/confirm-orders"
+        element={
+          <SellerProtectedRoute>
+            <SellerConfirmationOrders />
+          </SellerProtectedRoute>
+        }
+      />
       <Route
         path="/seller/return-orders"
         element={

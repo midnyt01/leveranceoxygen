@@ -7,14 +7,15 @@ import { SellerNotificationsContext } from "./seller-notifications.context";
 
 
 const updateDemandCylinders = async (quantity, sellerInfo) => {
-    let cylinders = {
-        cylinders: quantity
-    }
+    const {Small, Medium, Large} = quantity;
     try {
-        let response = await httpDemandCylinders(cylinders)
+        let response = await httpDemandCylinders(quantity)
         if (response.success === true) {
+            console.log('getting response')
             let newSellerInfo = sellerInfo
-            newSellerInfo.Demand = Number(sellerInfo.Demand) + Number(quantity)
+            newSellerInfo.Small = Number(sellerInfo.Small) + Number(Small);
+            newSellerInfo.Medium = Number(sellerInfo.Medium) + Number(Medium);
+            newSellerInfo.Large = Number(sellerInfo.Large) + Number(Large);
             return newSellerInfo
         }
     } catch (error) {
@@ -88,11 +89,12 @@ export const SellerAuthProvider = ({children}) => {
         return () => sellerSocket.off("update_seller_demand_orders")
     }, [sellerSocket, sellerInfo])
 
-    const AddDemandCylinders = async (quantity) => {
+    const AddDemandCylinders = async ({quantity, Refill}) => {
         let newSellerInfo = await updateDemandCylinders(quantity, sellerInfo)
+        console.log(newSellerInfo);
         setSellerInfo(newSellerInfo)
         let SellerToken = localStorage.getItem('seller')
-        sellerSocket.emit("add_demand_from_seller", {quantity, SellerToken})
+        sellerSocket.emit("add_demand_from_seller", {quantity, SellerToken, Refill})
     }
 
     const value = {isSellerLogin, setIsSellerLogin, sellerInfo, setSellerInfo, AddDemandCylinders}

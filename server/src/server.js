@@ -28,15 +28,15 @@ io.on("connection", (socket) => {
     })
 
     socket.on("add_demand_from_seller", (data) => {
-        const {quantity, SellerToken} = data;
+        const {quantity, SellerToken, Refill} = data;
         let SellerId = getSellerId(SellerToken)
-        socket.broadcast.emit("update_seller_demand", {quantity, SellerId})
+        socket.broadcast.emit("update_seller_demand", {quantity, SellerId, Refill})
     })
 
     socket.on("add_seller_return_order", (data) => {
-        const {SellerToken, orderToAdd} = data;
+        const {SellerToken, orderToAdd, Refill} = data;
         let SellerId = getSellerId(SellerToken)
-        socket.broadcast.emit("update_seller_return_orders_list", {SellerId, orderToAdd})
+        socket.broadcast.emit("update_seller_return_orders_list", {SellerId, orderToAdd, Refill})
     })
 
     //seller notification
@@ -45,6 +45,12 @@ io.on("connection", (socket) => {
     })
     socket.on("created_seller_demand_order", (data) => {
         socket.broadcast.emit("update_seller_demand_orders", data)
+    })
+    socket.on("confirm_create_seller_order", (data) => {
+        socket.broadcast.emit("confirm_create_seller_order_admin", data);
+    })
+    socket.on("cancel_create_seller_order", (data) => {
+        socket.broadcast.emit("cancel_create_seller_order_admin", data);
     })
 
     socket.on("update_seller_order_status", (data) => {

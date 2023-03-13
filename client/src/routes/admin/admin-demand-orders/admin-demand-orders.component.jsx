@@ -26,7 +26,7 @@ const DEMAND_ORDERS = [
 
 const DemandOrders = () => {
 
-    const {sellerDemandOrders} = useContext(SellersContext)
+    const {sellerDemandOrders} = useContext(SellersContext);
 
   return (
     <div>

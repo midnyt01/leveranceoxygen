@@ -168,16 +168,14 @@ async function httpCreateSellerOrder (orderDetails, sellerId) {
     return await response.json()
 }
 
-async function httpCreateSellerDemandOrder (orderDetails, DemandId) {
+async function httpUpdateSellerDemandOrder (DemandId) {
     const adminToken = localStorage.getItem("admin")
-    console.log(orderDetails)
-    const response = await fetch(`${API}/createsellerdemandorder/${DemandId}`, {
-        method: "post",
+    const response = await fetch(`${API}/updatesellerdemandorder/${DemandId}`, {
+        method: "put",
         headers: {
             "Content-Type": "application/json",
             "auth-token": `${adminToken}`
-        },
-        body: JSON.stringify(orderDetails)
+        }
     })
     return await response.json()
 }
@@ -263,7 +261,7 @@ export {
     httpGetAllProducts,
     httpDeleteProduct,
     httpCreateSeller,
-    httpCreateSellerDemandOrder,
+    httpUpdateSellerDemandOrder,
     httpGetAllSellers,
     httpGetSellerById,
     httpGetSellerOrdersBySellerId,

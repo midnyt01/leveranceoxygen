@@ -6,6 +6,12 @@ import { SellerAuthContext } from "../../../context/seller/seller-auth-context";
 import { useEffect } from "react";
 import SellerOrderCard from "../seller-return-order-card/seller-return-order-card.component";
 
+const DEFAULT_QUANTITY = {
+  Small : '',
+  Medium: '',
+  Large: ''
+}
+
 const OrderCard = () => {
   const { sellerReturnOrders, addToSellerReturnOrder } = useContext(SellerOrdersContext);
   const { sellerInfo, AddDemandCylinders } = useContext(SellerAuthContext);
@@ -14,7 +20,7 @@ const OrderCard = () => {
 
   const [isDisabled, setIsDisabled] = useState(true);
   const [openDemandCard, setOpenDemandCard] = useState(false)
-  const [quantity, setQuantity] = useState("")
+  const [quantity, setQuantity] = useState(DEFAULT_QUANTITY)
   const [isDemandConfirm, setIsDemandConfirm] = useState(true)
   const [demandStatus, setDemandStatus] = useState({success: "none", quantity: 0})
   const [demandErrorStatement, setDemandErrorStatement] = useState('')
@@ -40,11 +46,12 @@ const OrderCard = () => {
 
 
   useEffect(() => {
-    if (sellerInfo && quantity > sellerInfo.Count) {
+    const {Small, Medium, Large} = quantity
+    if (sellerInfo && (Small > sellerInfo.Small || Medium > sellerInfo.Medium || Large > sellerInfo.Large)) {
       setDemandErrorStatement('quantity cannot excedes your current cylinder count')
     } else {
       setDemandErrorStatement('')
-      if (quantity !== "" && quantity > 0) {
+      if (quantity !== "" && (Small > 0 || Medium > 0 || Large > 0)) {
         setIsDemandConfirm(false)
       }
     }
@@ -56,7 +63,7 @@ const OrderCard = () => {
 
   const handleCreateReturnOrder = () => {
 
-    addToSellerReturnOrder({Status: 'Booked', ReceivedAt: '', IsCompleted: 0});
+    addToSellerReturnOrder({Status: 'Booked', ReceivedAt: '', IsCompleted: 0}, {Refill: false});
     setIsDisabled(true)
   }
 
@@ -65,11 +72,13 @@ const OrderCard = () => {
   }
 
   const handleRefillEmptyCylinders = async (e) => {
-    let showQuantity = quantity
+    const {Small, Medium, Large} = quantity;
+    let showQuantity = (Number(Small) + Number(Medium) + Number(Large));
     e.preventDefault();
-    handleCreateReturnOrder();
-    AddDemandCylinders(quantity);
-    setQuantity("");
+    addToSellerReturnOrder({Status: 'Booked', ReceivedAt: '', IsCompleted: 0}, {Refill: true});
+    setIsDisabled(true)
+    AddDemandCylinders({quantity, Refill: true});
+    setQuantity(DEFAULT_QUANTITY);
     setDemandStatus({success: true, quantity: showQuantity});
     setTimeout(() => {
       setDemandStatus({success: "none", quantity: 0});
@@ -79,21 +88,10 @@ const OrderCard = () => {
   }
 
   const handleQuantityChange = (e) => {
-    const value = e.target.value;
-    setQuantity(value)
+    const {name, value} = e.target;
+    setQuantity({...quantity, [name] : value});
   }
 
-  const decreaseDemandCount = () => {
-    if (quantity !== "" && quantity > 0) {
-      setQuantity(Number(quantity) - 1)
-    }
-  }
-
-  const increaseDemandCount = () => {
-    if (quantity !== "" && quantity >= 0) {
-      setQuantity(Number(quantity) + 1)
-    }
-  }
   
   if (sellerReturnOrders !== null && sellerInfo) {
       
@@ -125,14 +123,28 @@ const OrderCard = () => {
           {openDemandCard && <div className="add-seller-demand-wrapper">
               <form className="add-seller-demand-form">
                 <div className="add-seller-demand-quantity-wrapper">
-                <div className="change-seller-demand" onClick={decreaseDemandCount}>-</div>
+                  <h3>Enter Cylinder Qunatities</h3>
                 <input
-                  placeholder="Quantity"
+                  placeholder="Small"
                   className="add-seller-demand-quantity"
-                  value={quantity}
+                  name="Small"
+                  value={quantity.Small}
                   onChange={handleQuantityChange}
                 />
-                <div className="change-seller-demand" onClick={increaseDemandCount}>+</div>
+                <input
+                  placeholder="Medium"
+                  className="add-seller-demand-quantity"
+                  name="Medium"
+                  value={quantity.Medium}
+                  onChange={handleQuantityChange}
+                />
+                <input
+                  placeholder="Large"
+                  className="add-seller-demand-quantity"
+                  name="Large"
+                  value={quantity.Large}
+                  onChange={handleQuantityChange}
+                />
                 </div>
                 <p style={{color: 'red'}}>{demandErrorStatement}</p>
                 {demandStatus.success === true && (

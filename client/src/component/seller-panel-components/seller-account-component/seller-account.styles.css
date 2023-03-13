@@ -20,6 +20,23 @@
   font-size: 22px;
 }
 
+.seller-demand-info-container{
+  background: rgb(222, 222, 222);
+  width: 50%;
+  padding: 5px 10px;
+  border-radius: 7px;
+  margin: 15px 0px;
+}
+.seller-demand-info-title {
+  margin: 2px 0 1px 0;
+  font-weight: bold;
+  font-size: 15px;
+}
+.seller-demand-info-item {
+  margin: 0px;
+  font-size: 17px;
+}
+
 .add-seller-balance-wrapper {
   z-index: 1;
   background-color: whitesmoke;
@@ -82,7 +99,7 @@
   background-color: whitesmoke;
   position: absolute;
   width: 80%;
-  height: 200px;
+  height: 320px;
   border-radius: 10px;
   box-sizing: border-box;
   padding: 20px 0px;
@@ -106,8 +123,8 @@
 
 .add-seller-demand-quantity-wrapper {
   display: flex;
-  flex-direction: row;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   margin-bottom: 20px;
 }
 
@@ -125,8 +142,9 @@
     border-radius: 4px;
     box-sizing: border-box;
     padding: 5px 10px;
-    width: 50px;
+    width: 100px;
     height: 40px;
+    margin-bottom: 5px;
 }
 
 .add-seller-demand-confirm {

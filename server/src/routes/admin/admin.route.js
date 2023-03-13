@@ -21,6 +21,7 @@ const {
   httpGetSellerTransactionsBySellerId,
   httpGetAllSellerDemandOrders,
   httpCreateSellerDemandOrder,
+  httpUpdateSellerDemandOrder,
 } = require("./admin.controller");
 
 const adminRouter = express.Router();
@@ -36,7 +37,7 @@ adminRouter.delete("/seller/:id", fetchAdmin, httpDeleteSellerById)
 
 //seller orders
 adminRouter.post("/createsellerorder/:id", fetchAdmin, httpCreateSellerOrder)
-adminRouter.post("/createsellerdemandorder/:id", fetchAdmin, httpCreateSellerDemandOrder);
+adminRouter.put("/updatesellerdemandorder/:id", fetchAdmin, httpUpdateSellerDemandOrder);
 adminRouter.get("/sellerorders", fetchAdmin, httpGetAllSellersOrders)
 adminRouter.put("/sellerorder/:id", fetchAdmin, httpUpdateSellerOrderStatus);
 adminRouter.get("/seller/sellerorders/:id", fetchAdmin, httpGetSellerOrdersBySellerId)
