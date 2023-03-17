@@ -5,43 +5,15 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter } from "react-router-dom";
 import { CartProvider } from "./context/cart.context";
-import { ProductsProvider } from "./context/admin/products.context";
-import { SellersProvider } from "./context/admin/sellers.context";
-import { AdminAuthProvider } from "./context/admin/auth.context";
-import { SellerAuthProvider } from "./context/seller/seller-auth-context";
-import { ProductCategoriesProvider } from "./context/seller/product-categories";
-import { SellerOrdersProvider } from "./context/seller/seller-orders.context";
-import { CustomersProvider } from "./context/admin/customers.context";
-import { AdminNotificationsProvider } from "./context/admin/admin-notifications.context";
-import { SellerNotificationsProvider } from "./context/seller/seller-notifications.context";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <BrowserRouter>
       {/* Admin */}
-      <AdminAuthProvider>
-        <AdminNotificationsProvider>
-          <ProductsProvider>
-            <SellersProvider>
-              <CustomersProvider>
-                {/* Seller panel */}
-                <SellerAuthProvider>
-                  <SellerNotificationsProvider>
-                    <ProductCategoriesProvider>
-                      <SellerOrdersProvider>
-                        <CartProvider>
-                          <App />
-                        </CartProvider>
-                      </SellerOrdersProvider>
-                    </ProductCategoriesProvider>
-                  </SellerNotificationsProvider>
-                </SellerAuthProvider>
-              </CustomersProvider>
-            </SellersProvider>
-          </ProductsProvider>
-        </AdminNotificationsProvider>
-      </AdminAuthProvider>
+      <CartProvider>
+        <App />
+      </CartProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

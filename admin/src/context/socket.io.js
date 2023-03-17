@@ -1,16 +1,16 @@
 import io from "socket.io-client";
 
-// export const adminSocket = io("https://api.leveranceoxygen.com", {
-//   withCredentials: true,
+export const adminSocket = io("https://api.leveranceoxygen.com", {
+  withCredentials: true,
 
-//     transportOptions: {
-//         polling: {
-//           extraHeaders: {
-//             "my-custom-header": "abcd"
-//           }
-//         }
-//     }
-// });
+    transportOptions: {
+        polling: {
+          extraHeaders: {
+            "my-custom-header": "abcd"
+          }
+        }
+    }
+});
 
 // export const sellerSocket = io("https://api.leveranceoxygen.com", {
 //   withCredentials: true,

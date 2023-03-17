@@ -12,17 +12,17 @@ import io from "socket.io-client";
 //     }
 // });
 
-// export const sellerSocket = io("https://api.leveranceoxygen.com", {
-//   withCredentials: true,
+export const sellerSocket = io("https://api.leveranceoxygen.com", {
+  withCredentials: true,
 
-//     transportOptions: {
-//         polling: {
-//           extraHeaders: {
-//             "my-custom-header": "abcd"
-//           }
-//         }
-//     }
-// });
+    transportOptions: {
+        polling: {
+          extraHeaders: {
+            "my-custom-header": "abcd"
+          }
+        }
+    }
+});
 
 // export const adminSocket = io("http://localhost:8000");
 // export const sellerSocket = io("http://localhost:8000");
