@@ -13,7 +13,7 @@ const LandingPage = () => {
       <PorductList />
       <Map />
       <SellersList />
-      {/* <BottomNav /> */}
+      <BottomNav />
     </div>
   );
 };

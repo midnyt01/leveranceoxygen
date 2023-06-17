@@ -1,6 +1,7 @@
 import './user-profile.styles.css'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import BottomNav from '../../../component/customer-panel-components/bottom-nav/bottom-nav.component'
 
 const UserProfile = () => {
     return (
@@ -83,6 +84,7 @@ const UserProfile = () => {
                 <p className='extra-option'>Rate us on the Play Store</p>
                 <p className='extra-option'>Log Out</p>
             </div>
+            <BottomNav />
         </div>
     )
 }

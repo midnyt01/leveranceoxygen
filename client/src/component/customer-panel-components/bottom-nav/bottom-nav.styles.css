@@ -2,7 +2,24 @@
     position: fixed;
     bottom: 0;
     width: 100%;
-    height: 50px;
+    height: 55px;
     background-color: white;
     display: flex;
+    align-content: center;
+    align-items: center;
+    justify-content: space-evenly;
+    box-shadow:
+  0px 0px 2.2px -2px rgba(0, 0, 0, 0.025),
+  0px 0px 5.3px -2px rgba(0, 0, 0, 0.036),
+  0px 0px 10px -2px rgba(0, 0, 0, 0.045),
+  0px 0px 17.9px -2px rgba(0, 0, 0, 0.054),
+  0px 0px 33.4px -2px rgba(0, 0, 0, 0.065),
+  0px 0px 80px -2px rgba(0, 0, 0, 0.09) ;
+}
+.bottom-nav-container svg:not(:root).svg-inline--fa,
+.bottom-nav-container svg:not(:host).svg-inline--fa {
+    width: 50px;
+}
+.bottom-nav-container .svg-inline--fa {
+    height: 1.5em;
 }

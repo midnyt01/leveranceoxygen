@@ -27,8 +27,7 @@ const SellerPage = () => {
             </div>
             {/* order online or through whatsapp */}
             <div className="ml-2 mr-2 mt-3 d-flex jc-space-btw" >
-                <div className="online-button">Online</div>
-                <div className="whatsapp-button">Whatsapp</div>
+                <div className="whatsapp-button"><FontAwesomeIcon icon="fa-brands fa-whatsapp" /> Order on WhatsApp</div>
             </div>
             {/* Products List */}
             <h2 className="secondary-text ml-2">Cylinders</h2>

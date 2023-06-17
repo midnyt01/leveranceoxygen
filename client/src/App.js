@@ -9,13 +9,18 @@ import OrderHistory from "./routes/customer/order-history/order-history.componen
 import "./App.css";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { fas } from "@fortawesome/free-solid-svg-icons";
-
-
-library.add(fas);
+import { fab } from '@fortawesome/free-brands-svg-icons';
+import { far } from '@fortawesome/free-regular-svg-icons'
+// Images and Logo
+import LeveranceOxygenLogo from "./assets/leverance_logo.png";
+// import SellerCreateOrder from "./routes/seller/seller-create-order/seller-create-order.component";
+library.add(fas, far, fab);
 
 function App() {
   return (
     <Routes>
+      {/* Common */}
+      <Route path="/mainlogo" element={<LeveranceOxygenLogo />} />
 
       {/* Customer */}
       <Route path="/" element={<LandingPage />} />

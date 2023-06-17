@@ -27,7 +27,6 @@ const AdminLoginForm = () => {
         initialValues: defaultFormFields,
         validationSchema: LoginSchema,
         onSubmit : async (values) => {
-            console.log(values)
             setLoginFailed({message: ""});
             const data = await httpLoginAdmin(values)
             console.log({data})

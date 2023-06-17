@@ -12,7 +12,7 @@ const Topbar = () => {
           <span className='my-location light-text'>My location</span>
         </div>
         <Link to='/user-profile' className="user light-text">
-        <FontAwesomeIcon icon="fa-solid fa-user" />
+          <FontAwesomeIcon icon="fa-solid fa-bell" />
         </Link>
       </div>
     </div>
